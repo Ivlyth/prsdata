@@ -1,0 +1,57 @@
+config:
+  concurrency_jobs: 2
+  concurrency_commands: 6
+  test_times: 1
+  debug: false
+  duration: 0
+
+  tool:
+    bash: bash
+    capinfos: capinfos
+    editcap: editcap
+    tcpdump: tcpdump
+    tcprewrite: tcprewrite
+    tcpprep: tcpprep
+
+  modifier:
+    adjust_time: true  # default is false, you must set it explicit
+    time_offset: 0s
+    keep_ip: false
+    c1: 192
+    c2: 168
+    c3: 186
+    c4: 11
+    s1: 10
+    s2: 132
+    s3: 123
+    s4: 22
+    use_part_3: false
+    use_part_4: false
+
+  finder:
+    directory: /data/.prsdata/pcaps/
+
+jobs:
+  - id: zeek
+    name: zeek
+    enable: true
+    commands:
+      - name: zeek
+        command: /opt/zeek/bin/zeek -r {{.RelativePath}} -C /opt/zeek-scripts/tophant.entrypoint.zeek
+        directory: "{{.FinderDirectory}}"
+
+  - id: suricata
+    name: suricata
+    enable: true
+    commands:
+      - name: suricata
+        command: /opt/suricata/bin/suricata -c /opt/suricata/etc/suricata/suricata.yaml -r {{.RelativePath}} -k none --runmode autofp
+        directory: "{{.FinderDirectory}}"
+
+  - id: fpc
+    name: fpc
+    enable: false
+    commands:
+      - name: moloch
+        command: /data/moloch/bin/moloch-capture --insecure -c /data/moloch/etc/config.ini -r {{.RelativePath}}
+        directory: "{{.FinderDirectory}}"

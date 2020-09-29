@@ -1,0 +1,120 @@
+config:
+  concurrency_jobs: 6
+  concurrency_commands: 6
+  test_times: 1
+  debug: false
+  duration: 0
+
+  tool:
+    bash: bash
+    capinfos: capinfos
+    editcap: editcap
+    tcpdump: tcpdump
+    tcprewrite: tcprewrite
+    tcpprep: tcpprep
+
+  modifier:
+    adjust_time: true  # default is false, you must set it explicit
+    time_offset: 0s
+    keep_ip: false
+    c1: 192
+    c2: 168
+    c3: 186
+    c4: 11
+    s1: 10
+    s2: 132
+    s3: 123
+    s4: 22
+    use_part_4: false
+
+  finder:
+    directory: /data/.prsdata/pcaps/
+
+
+modifiers:
+  - id: keep-ip
+    keep_ip: true
+
+finders:
+  # 为 auth 协议查找 pcap, 使用默认的修改规则
+  - id: auth
+    directory: /data/.prsdata/pcaps/
+    patterns:
+      - smtp
+      - pop3
+      - ftp
+      - http
+      - mysql
+
+  # 为 pvs 功能查找 pcap, 使用默认的修改规则
+  - id: pvs
+    directory: /data/.prsdata/pcaps/pvs/
+
+  - id: sqli
+    directory: /data/.prsdata/pcaps/pvs/SqlInjection
+    modifier: keep-ip
+
+  - id: webshell-predict
+    directory: /data/.prsdata/pcaps/webshell/predata/
+    modifier: keep-ip
+
+  - id: webshell-detect
+    directory: /data/.prsdata/pcaps/webshell/detectdata/
+    modifier: keep-ip
+
+jobs:
+  - id: zeek
+    name: zeek
+    enable: true
+    commands:
+      - name: zeek
+        command: /opt/zeek/bin/zeek -r {{.Path}} -C /opt/zeek-scripts/tophant.entrypoint.zeek
+        timeout: 10s
+
+  - id: suricata
+    name: suricata
+    enable: true
+    commands:
+      - name: suricata
+        command: /opt/suricata/bin/suricata -c /opt/suricata/etc/suricata/suricata.yaml -F /opt/suricata/etc/suricata/bpf-filter.bpf -r {{.Path}} -k none --runmode autofp
+        timeout: 10s
+
+  - id: auth
+    name: 认证消息
+    finder: auth
+    enable: false
+    commands:
+      - name: zeek auth
+        command: /opt/zeek/bin/zeek -r {{.Path}} -C /opt/zeek-scripts/auth/main.zeek
+
+  - id: pvs
+    name: PVS
+    finder: pvs
+    enable: false
+    commands:
+      - name: zeek protocol http
+        command: /opt/zeek/bin/zeek -r {{.Path}} -C /opt/zeek-scripts/protocol/http.zeek
+
+  - id: sqli
+    name: SQL 注入
+    finder: sqli
+    commands:
+      - name: zeek protocol http
+        command: /opt/zeek/bin/zeek -r {{.Path}} -C /opt/zeek-scripts/protocol/http.zeek
+
+  - id: aimodel
+    name: 智能模型
+    enable: false
+    commands:
+      - name: 训练
+        command: echo {{.Path}}
+        finder: webshell-predict
+
+      - name: 等待训练模型生成
+        command: sleep 7200
+        timeout: 7202
+        type: shell
+
+      - name: 验证
+        command: echo {{.Path}}
+        finder: webshell-detect
