@@ -37,7 +37,7 @@ func (r *RealCommand) run() {
 		if reason == "" {
 			reason = result.err.Error()
 		}
-		logger.Errorln(fmt.Sprintf("%s execute failed, use: %s, : %s", r, duration, reason))
+		logger.Errorln(fmt.Sprintf("%s execute failed, use: %s, output is:\n%s", r, duration, reason))
 	} else {
 		logger.Infoln(fmt.Sprintf("%s execute succeed, use: %s", r, duration))
 	}

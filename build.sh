@@ -21,4 +21,4 @@ LDFLAGS="\
 -X \"main.COMPILE_AT=$(date +'%F %H:%M:%S')\" \
 "
 
-go build --ldflags "${LDFLAGS}" -o build/prsdata .
+go build --ldflags "${LDFLAGS}" --gcflags "-N -l" -o build/prsdata .

@@ -55,14 +55,14 @@ func (p *PcapTool) check() error {
 
 func (p *PcapTool) adjustTime(src, dst string, timeOffset int64) *ExecResult {
 
-	return execShellCommand(fmt.Sprintf("%s -t %d %s %s", p.Editcap, timeOffset, src, dst), "", config.CommandTimeout)
+	return execShellCommand(fmt.Sprintf("%s -t %d %s %s", p.Editcap, timeOffset, src, dst), config.CommandTimeout)
 }
 
 func (p *PcapTool) generateCache(src, dst string, timeout time.Duration) *ExecResult {
 	if timeout == 0 {
 		timeout = config.CommandTimeout
 	}
-	return execShellCommand(fmt.Sprintf("%s -a client --pcap=%s --cachefile=%s --nonip", p.Tcpprep, src, dst), "", timeout)
+	return execShellCommand(fmt.Sprintf("%s -a client --pcap=%s --cachefile=%s --nonip", p.Tcpprep, src, dst), timeout)
 }
 
 func (p *PcapTool) modifyIp(src, dst, cache, endpoints string, timeout time.Duration) *ExecResult {
@@ -72,12 +72,12 @@ func (p *PcapTool) modifyIp(src, dst, cache, endpoints string, timeout time.Dura
 
 	cmd := fmt.Sprintf("%s --fixcsum --infile=%s --outfile=%s --skipbroadcast --cachefile=%s --endpoints=%s",
 		p.Tcprewrite, src, dst, cache, endpoints)
-	return execShellCommand(cmd, "", timeout)
+	return execShellCommand(cmd, timeout)
 }
 
 func (p *PcapTool) filterIPv6(src, dst string, timeout time.Duration) *ExecResult {
 	if timeout == 0 {
 		timeout = config.CommandTimeout
 	}
-	return execShellCommand(fmt.Sprintf("%s -r %s -w %s -c 1 ip6", p.Tcpdump, src, dst), "", timeout)
+	return execShellCommand(fmt.Sprintf("%s -r %s -w %s -c 1 ip6", p.Tcpdump, src, dst), timeout)
 }

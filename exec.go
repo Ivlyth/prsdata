@@ -1,13 +1,12 @@
 package main
 
 import (
-	"context"
+	"errors"
 	"fmt"
 	"os/exec"
-	"strings"
+	"syscall"
 	"time"
 
-	"github.com/pkg/errors"
 	logger "github.com/sirupsen/logrus"
 )
 
@@ -62,55 +61,52 @@ func execRealCommand(realCommand *RealCommand) *ExecResult {
 			return errResult(err)
 		}
 
-		renderDirectory := ""
-		if realCommand.command.Directory != "" {
-			renderDirectory, err = pcapContext.render(realCommand.command.Directory)
-			if err != nil {
-				return errResult(err)
-			}
-		} else {
-			renderDirectory = pcapContext.FinderDirectory
-		}
-
-		result := execShellCommand(renderedCommand, renderDirectory, realCommand.command.Timeout)
+		result := execShellCommand(renderedCommand, realCommand.command.Timeout)
 		return result
 	}
 }
 
 func execCommand(command *Command) *ExecResult {
-	result := execShellCommand(command.Command, command.Directory, command.Timeout)
+	result := execShellCommand(command.Command, command.Timeout)
 	return result
 }
 
-func execShellCommand(command, directory string, timeout time.Duration) *ExecResult {
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
+func execShellCommand(command string, timeout time.Duration) *ExecResult {
+
+	cmd := exec.Command(pcapTool.Bash, "-c", command)
+	sysAttr := &syscall.SysProcAttr{
+		Setpgid: true,
+	}
+	cmd.SysProcAttr = sysAttr
 
 	if config.ShowCommand {
 		logger.Debugln(fmt.Sprintf("executing: %s (with timeout %s)", command, timeout))
 	}
 
-	fields := strings.Fields(command)
-	//cmd := exec.CommandContext(ctx, pcapTool.Bash, "-c", command)
-	cmd := exec.CommandContext(ctx, fields[0], fields[1:]...)
-	if directory != "" {
-		cmd.Dir = directory
-	}
+	reaper := time.After(timeout)
+	processFinished := make(chan struct{})
 
-	out, err := cmd.CombinedOutput()
+	isTimeout := false
 
-	output := ""
+	go func() {
+		select {
+		case <- reaper:
+			// timeout
+			isTimeout = true
+			// kill process use pkill
+			_ = syscall.Kill(-cmd.Process.Pid, 9)
+		case <- processFinished:
 
-	if ctx.Err() == context.DeadlineExceeded {
-		err = errors.New("timeout")
-		if out != nil {
-			output = string(out)
 		}
-	} else if err != nil {
-		output = string(out)
-		err = errors.New(output)
-	} else {
-		output = string(out)
+	}()
+
+	bytes, err := cmd.CombinedOutput()
+	close(processFinished)
+
+	output := string(bytes)
+
+	if isTimeout {
+		err = errors.New("timeout")
 	}
 
 	if config.ShowCommandStdout {

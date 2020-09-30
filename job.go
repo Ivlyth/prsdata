@@ -89,8 +89,7 @@ func defaultJobs() []*Job {
 			Commands: []*Command{
 				{
 					Name:      "zeek",
-					Command:   "/opt/zeek/bin/zeek -r {{.RelativePath}} -C /opt/zeek-scripts/tophant.entrypoint.zeek",
-					Directory: "{{.FinderDirectory}}",
+					Command:   "cd {{.FinderDirectory}} && /opt/zeek/bin/zeek -r {{.RelativePath}} -C /opt/zeek-scripts/tophant.entrypoint.zeek",
 				},
 			},
 			FinderId: defaultFinder.Id,
@@ -102,8 +101,7 @@ func defaultJobs() []*Job {
 			Commands: []*Command{
 				{
 					Name:      "suricata",
-					Command:   "/opt/suricata/bin/suricata -c /opt/suricata/etc/suricata/suricata.yaml -r {{.RelativePath}} -k none --runmode autofp",
-					Directory: "{{.FinderDirectory}}",
+					Command:   "cd {{.FinderDirectory}} && /opt/suricata/bin/suricata -c /opt/suricata/etc/suricata/suricata.yaml -r {{.RelativePath}} -k none --runmode autofp",
 				},
 			},
 			FinderId: defaultFinder.Id,
@@ -115,8 +113,7 @@ func defaultJobs() []*Job {
 			Commands: []*Command{
 				{
 					Name:      "moloch",
-					Command:   "/data/moloch/bin/moloch-capture --insecure -c /data/moloch/etc/config.ini -r {{.RelativePath}}",
-					Directory: "{{.FinderDirectory}}",
+					Command:   "cd {{.FinderDirectory}} && /data/moloch/bin/moloch-capture --insecure -c /data/moloch/etc/config.ini -r {{.RelativePath}}",
 				},
 			},
 			FinderId: defaultFinder.Id,

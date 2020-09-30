@@ -37,21 +37,18 @@ jobs:
     enable: true
     commands:
       - name: zeek
-        command: /opt/zeek/bin/zeek -r {{.RelativePath}} -C /opt/zeek-scripts/tophant.entrypoint.zeek
-        directory: "{{.FinderDirectory}}"
+        command: cd {{.FinderDirectory}} && /opt/zeek/bin/zeek -r {{.RelativePath}} -C /opt/zeek-scripts/tophant.entrypoint.zeek
 
   - id: suricata
     name: suricata
     enable: true
     commands:
       - name: suricata
-        command: /opt/suricata/bin/suricata -c /opt/suricata/etc/suricata/suricata.yaml -r {{.RelativePath}} -k none --runmode autofp
-        directory: "{{.FinderDirectory}}"
+        command: cd {{.FinderDirectory}} && /opt/suricata/bin/suricata -c /opt/suricata/etc/suricata/suricata.yaml -r {{.RelativePath}} -k none --runmode autofp
 
   - id: fpc
     name: fpc
     enable: false
     commands:
       - name: moloch
-        command: /data/moloch/bin/moloch-capture --insecure -c /data/moloch/etc/config.ini -r {{.RelativePath}}
-        directory: "{{.FinderDirectory}}"
+        command: cd {{.FinderDirectory}} && /data/moloch/bin/moloch-capture --insecure -c /data/moloch/etc/config.ini -r {{.RelativePath}}
