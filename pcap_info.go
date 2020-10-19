@@ -8,6 +8,26 @@ import (
 	"time"
 )
 
+type PcapInfo struct {
+	Encapsulation   string `mapstructure:"file encapsulation"`
+	PacketCount     string `mapstructure:"number of packets"`
+	CaptureDuration string `mapstructure:"capture duration"`
+	FirstPacketTime string `mapstructure:"first packet time"`
+	LastPacketTime  string `mapstructure:"last packet time"`
+	StartTime       string `mapstructure:"start time"`
+	EndTime         string `mapstructure:"end time"`
+	AvgPacketSize   string `mapstructure:"average packet size"`
+	AvgPacketRate   string `mapstructure:"average packet rate"`
+	SHA1            string `mapstructure:"sha1"`
+
+	packetCount     int64
+	captureDuration time.Duration
+	firstPacketTime time.Time
+	lastPacketTime  time.Time
+	avgPacketSize   float64
+	avgPacketRate   float64 // aka. pps
+}
+
 func (p *PcapInfo) parse() error {
 	var err error
 	vi, err := strconv.ParseInt(p.PacketCount, 10, 64)
@@ -22,13 +42,29 @@ func (p *PcapInfo) parse() error {
 	}
 	p.captureDuration = d
 
-	ts, err := strconv.ParseFloat(p.FirstPacketTime, 64)
+	var firstPacketTime string
+	if p.FirstPacketTime != "" {
+		firstPacketTime = p.FirstPacketTime
+	} else if p.StartTime != "" {
+		firstPacketTime = p.StartTime
+	} else {
+		return errors.New(fmt.Sprintf("no first packet time found"))
+	}
+	ts, err := strconv.ParseFloat(firstPacketTime, 64)
 	if err != nil {
 		return errors.New(fmt.Sprintf("errors when parse first packet time: %s", err))
 	}
 	p.firstPacketTime = time.Unix(int64(ts), 0)
 
-	ts, err = strconv.ParseFloat(p.LastPacketTime, 64)
+	var lastPacketTime string
+	if p.LastPacketTime != "" {
+		lastPacketTime = p.LastPacketTime
+	} else if p.EndTime != "" {
+		lastPacketTime = p.EndTime
+	} else {
+		return errors.New(fmt.Sprintf("no last packet time found"))
+	}
+	ts, err = strconv.ParseFloat(lastPacketTime, 64)
 	if err != nil {
 		return errors.New(fmt.Sprintf("errors when parse last packet time: %s", err))
 	}
