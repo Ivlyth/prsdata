@@ -28,6 +28,7 @@ type Finder struct {
 	PacketCountGe   int64    `mapstructure:"packet_count_ge"`
 	AvgPacketSizeLE float64  `mapstructure:"avg_packet_size_le"`
 	AvgPacketSizeGE float64  `mapstructure:"avg_packet_size_ge"`
+	OnlyIpv6        bool     `mapstructure:"only_ipv6"`
 	Used            bool     // 是否被某个 job 的 command 使用到
 
 	absDirectory string // auto
@@ -235,6 +236,11 @@ func (f *Finder) loadFromPath(path string, info os.FileInfo, err error) error {
 
 	if f.AvgPacketSizeGE > 0 && pcap.info.avgPacketSize < f.AvgPacketSizeGE {
 		pcap.showWhy(fmt.Sprintf("avg packet size value %f less than limit %f", pcap.info.avgPacketSize, f.AvgPacketSizeGE))
+		return nil
+	}
+
+	if f.OnlyIpv6 && !pcap.file.finder.modifier.KeepIp && !pcap.hasIPv6 {
+		pcap.showWhy(fmt.Sprintf("not contains ipv6 packet"))
 		return nil
 	}
 

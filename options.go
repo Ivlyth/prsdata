@@ -62,7 +62,7 @@ func init() {
 	// default modifier params
 	rootCmd.Flags().BoolP("adjust-time", "a", true, "adjust time or not")
 	rootCmd.Flags().DurationP("time-offset", "t", 0, "time offset")
-	rootCmd.Flags().Bool("keep-ip", false, "keep ip or not")
+	rootCmd.Flags().BoolP("keep-ip", "K",false, "keep ip or not")
 	rootCmd.Flags().Int("c1", 192, "c1")
 	rootCmd.Flags().Int("c2", 168, "c2")
 	rootCmd.Flags().Int("c3", 186, "c3")
@@ -83,6 +83,7 @@ func init() {
 	rootCmd.Flags().Int("packet-count-ge", 0, "packet count greater than or equal to given value")
 	rootCmd.Flags().Int("avg-packet-size-le", 0, "avg packet size less than or equal to given value")
 	rootCmd.Flags().Int("avg-packet-size-ge", 0, "avg packet size greater than or equal to given value")
+	rootCmd.Flags().Bool("only-ipv6",  false, "find only ipv6 pcap")
 
 	// default tool path params
 	rootCmd.Flags().String("bash", "bash", "bash path")

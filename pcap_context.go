@@ -16,6 +16,8 @@ type PcapContext struct {
 	BaseName          string
 	Name              string
 	Ext               string
+	HasIpv6           bool
+	PacketCount       int64
 }
 
 var samplePcapContext = PcapContext{

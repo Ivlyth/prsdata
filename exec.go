@@ -44,7 +44,7 @@ func execRealCommand(realCommand *RealCommand) *ExecResult {
 		f.parse()
 		defer f.delete()
 
-		pcapContext := &PcapContext{
+		pcapContext := &PcapContext {
 			WorkingDirectory:  config.workingDirectory,
 			FinderDirectory:   realCommand.pcap.file.finder.workingDirectory,
 			PcapDirectory:     realCommand.pcap.workingDirectory,
@@ -54,6 +54,8 @@ func execRealCommand(realCommand *RealCommand) *ExecResult {
 			BaseName:          f.baseName,
 			Name:              f.name,
 			Ext:               f.ext,
+			HasIpv6:           realCommand.pcap.hasIPv6,
+			PacketCount:       realCommand.pcap.info.packetCount,
 		}
 
 		renderedCommand, err := pcapContext.render(realCommand.command.Command)

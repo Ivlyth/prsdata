@@ -32,6 +32,7 @@ func (p *PcapInfo) parse() error {
 	var err error
 	vi, err := strconv.ParseInt(p.PacketCount, 10, 64)
 	if err != nil {
+		p.packetCount = -1
 		return errors.New(fmt.Sprintf("errors when parse number of packets: %s", err))
 	}
 	p.packetCount = vi
@@ -76,6 +77,7 @@ func (p *PcapInfo) parse() error {
 	}
 	vf, err := strconv.ParseFloat(parts[0], 64)
 	if err != nil {
+		p.avgPacketSize = -1
 		return errors.New(fmt.Sprintf("errors when parse avg packet size: %s", err))
 	}
 	p.avgPacketSize = vf
@@ -86,6 +88,7 @@ func (p *PcapInfo) parse() error {
 	}
 	vf, err = strconv.ParseFloat(parts[0], 64)
 	if err != nil {
+		p.avgPacketRate = -1
 		return errors.New(fmt.Sprintf("errors when parse pps: %s", err))
 	}
 	p.avgPacketRate = vf

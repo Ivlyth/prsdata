@@ -19,17 +19,17 @@ type Modifier struct {
 	AdjustTime bool          `mapstructure:"adjust_time"`
 	TimeOffset time.Duration `mapstructure:"time_offset"`
 
-	KeepIp   bool `mapstructure:"keep_ip"`
-	C1       int  `mapstructure:"c1"`
-	C2       int  `mapstructure:"c2"`
-	C3       int  `mapstructure:"c3"`
-	C4       int  `mapstructure:"c4"`
-	S1       int  `mapstructure:"s1"`
-	S2       int  `mapstructure:"s2"`
-	S3       int  `mapstructure:"s3"`
-	S4       int  `mapstructure:"s4"`
-	UsePart3 bool `mapstructure:"use_part_3"`
-	UsePart4 bool `mapstructure:"use_part_4"`
+	KeepIp    bool `mapstructure:"keep_ip"`
+	C1        int  `mapstructure:"c1"`
+	C2        int  `mapstructure:"c2"`
+	C3        int  `mapstructure:"c3"`
+	C4        int  `mapstructure:"c4"`
+	S1        int  `mapstructure:"s1"`
+	S2        int  `mapstructure:"s2"`
+	S3        int  `mapstructure:"s3"`
+	S4        int  `mapstructure:"s4"`
+	UsePart3  bool `mapstructure:"use_part_3"`
+	UsePart4  bool `mapstructure:"use_part_4"`
 
 	Used bool // 是否被某个 job 的 command 使用到
 }
@@ -81,7 +81,7 @@ func (m *Modifier) check() error {
 	return nil
 }
 
-func (m *Modifier) randomEndPoints(isIPv6 bool) string {
+func (m *Modifier) randomEndPoints(hasIPv6 bool) string {
 	c3 := rand.Int31n(255)
 	s3 := rand.Int31n(255)
 
@@ -108,7 +108,7 @@ func (m *Modifier) randomEndPoints(isIPv6 bool) string {
 		s_mask = 24
 	}
 
-	if isIPv6 {
+	if hasIPv6 {
 		c_mask = c_mask + 96
 		s_mask = s_mask + 96
 		return fmt.Sprintf("[::ffff:%d.%d.%d.%d/%d]:[::ffff:%d.%d.%d.%d/%d]", m.C1, m.C2, c3, c4, c_mask, m.S1, m.S2, s3, s4, s_mask)

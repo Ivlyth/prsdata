@@ -27,7 +27,7 @@ type Pcap struct {
 	copyFilePath  string // init 阶段拷贝一份到该目录下利用
 	cacheFilePath string // init 阶段生成 cache file
 	info          *PcapInfo
-	isIPv6        bool
+	hasIPv6       bool
 
 	counter atomic.Int32
 }
@@ -109,12 +109,12 @@ func (p *Pcap) init() error {
 				info2, err := parsePcapInfo(ipv6File)
 				ipv6f := File{path: ipv6File}
 				defer ipv6f.delete()
-				if err != nil {
+				if err != nil && info2 == nil {
 					return
 				}
-				p.isIPv6 = info2.packetCount > 0
+				p.hasIPv6 = info2.packetCount > 0
 
-				endpoints := p.file.finder.modifier.randomEndPoints(p.isIPv6)
+				endpoints := p.file.finder.modifier.randomEndPoints(p.hasIPv6)
 				modifyIPFile := filepath.Join(p.workingDirectory, fmt.Sprintf("%s.modify-ip", p.file.name))
 				result = pcapTool.modifyIp(p.file.path, modifyIPFile, p.cacheFilePath, endpoints, 0)
 				modifyf := File{path: modifyIPFile}
@@ -162,7 +162,7 @@ func (p *Pcap) new() (string, error) {
 
 	if !p.file.finder.modifier.KeepIp {
 
-		endpoints := p.file.finder.modifier.randomEndPoints(p.isIPv6)
+		endpoints := p.file.finder.modifier.randomEndPoints(p.hasIPv6)
 		result := pcapTool.modifyIp(src, nfm, p.cacheFilePath, endpoints, 0)
 		if !result.succeed {
 			return "", errors.New(fmt.Sprintf("can not modify ip: %s", result.err))
@@ -195,7 +195,7 @@ func parsePcapInfo(src string) (*PcapInfo, error) {
 		}
 		err = info.parse()
 		if err != nil {
-			return nil, err
+			return info, err
 		}
 		return info, nil
 	} else if result.output != "" {
