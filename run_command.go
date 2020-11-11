@@ -15,6 +15,7 @@ type RealCommand struct {
 	pcap    *Pcap
 	realJob *RealJob
 	g       *sync.WaitGroup
+	p426    bool
 }
 
 func (r *RealCommand) String() string {

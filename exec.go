@@ -33,7 +33,7 @@ func execRealCommand(realCommand *RealCommand) *ExecResult {
 	if realCommand.command.Type == "shell" {
 		return execCommand(realCommand.command)
 	} else {
-		pcapPath, err := realCommand.pcap.new()
+		pcapPath, err := realCommand.pcap.new(realCommand.p426)
 		if err != nil {
 			return errResult(err)
 		}

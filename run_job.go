@@ -62,6 +62,20 @@ func runCommands(realJob *RealJob) {
 					}
 					g.Add(1)
 					_ = realJob.pool.Invoke(realCommand)
+
+					if config.EnableP426 && !pcap.hasIPv6 && (pcap.file.ext == ".pcap" || pcap.file.ext == ".pcapng") {
+						realCommand := &RealCommand{
+							round:   round,
+							total:   totalCount,
+							command: command,
+							pcap:    pcap,
+							realJob: realJob,
+							g:       &g,
+							p426:    true,
+						}
+						g.Add(1)
+						_ = realJob.pool.Invoke(realCommand)
+					}
 				}
 			}
 		}

@@ -136,18 +136,34 @@ func (p *Pcap) timeOffset() int64 {
 	return int64(adjustment) / int64(time.Second)
 }
 
-func (p *Pcap) new() (string, error) {
+func (p *Pcap) new(p426 bool) (string, error) {
 	// 先拷贝一份源文件
 	nid := p.counter.Inc()
 
-	src := filepath.Join(p.workingDirectory, fmt.Sprintf("%s_%06d%s", p.file.name, nid, p.file.ext))
+	srcBase := filepath.Join(p.workingDirectory, fmt.Sprintf("%s_%06d", p.file.name, nid))
+	if p426 {
+		srcBase = fmt.Sprintf("%s_p426", srcBase)
+	}
+	src := fmt.Sprintf("%s%s", srcBase, p.file.ext)
 	err := copyTo(p.copyFilePath, src)
 	if err != nil {
 		return "", err
 	}
 
-	nft := fmt.Sprintf("%s.adjust-time", src)
-	nfm := fmt.Sprintf("%s.modify-ip", src)
+	nfp426 := fmt.Sprintf("%s.p426%s", srcBase, p.file.ext)
+	nft := fmt.Sprintf("%s.adjust-time%s", srcBase, p.file.ext)
+	nfm := fmt.Sprintf("%s.modify-ip%s", srcBase, p.file.ext)
+
+	if p426 {
+		result := pcapTool.p426(src, nfp426)
+		if !result.succeed {
+			return "", result.err
+		}
+		err := os.Rename(nfp426, src)
+		if err != nil {
+			return "", err
+		}
+	}
 
 	if p.file.finder.modifier.AdjustTime {
 		result := pcapTool.adjustTime(src, nft, p.timeOffset())
@@ -162,7 +178,8 @@ func (p *Pcap) new() (string, error) {
 
 	if !p.file.finder.modifier.KeepIp {
 
-		endpoints := p.file.finder.modifier.randomEndPoints(p.hasIPv6)
+		hasIPv6 := p.hasIPv6 || p426
+		endpoints := p.file.finder.modifier.randomEndPoints(hasIPv6)
 		result := pcapTool.modifyIp(src, nfm, p.cacheFilePath, endpoints, 0)
 		if !result.succeed {
 			return "", errors.New(fmt.Sprintf("can not modify ip: %s", result.err))

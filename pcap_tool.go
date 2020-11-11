@@ -18,6 +18,7 @@ type PcapTool struct {
 	Tcpdump    string `mapstructure:"tcpdump"`
 	Tcprewrite string `mapstructure:"tcprewrite"`
 	Tcpprep    string `mapstructure:"tcpprep"`
+	P426       string `mapstructure:"p426"`
 }
 
 func (p *PcapTool) String() string {
@@ -32,6 +33,7 @@ func (p *PcapTool) check() error {
 		"tcpdump":    &p.Tcpdump,
 		"tcprewrite": &p.Tcprewrite,
 		"tcpprep":    &p.Tcpprep,
+		"p426":       &p.P426,
 	} {
 		if !filepath.IsAbs(*path) {
 			// find in path
@@ -53,8 +55,11 @@ func (p *PcapTool) check() error {
 	return nil
 }
 
-func (p *PcapTool) adjustTime(src, dst string, timeOffset int64) *ExecResult {
+func (p *PcapTool) p426(src, dst string) *ExecResult {
+	return execShellCommand(fmt.Sprintf("%s %s %s", p.P426, src, dst), config.CommandTimeout)
+}
 
+func (p *PcapTool) adjustTime(src, dst string, timeOffset int64) *ExecResult {
 	return execShellCommand(fmt.Sprintf("%s -t %d %s %s", p.Editcap, timeOffset, src, dst), config.CommandTimeout)
 }
 

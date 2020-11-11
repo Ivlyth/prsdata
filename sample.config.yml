@@ -4,6 +4,7 @@ config:
   test_times: 1
   debug: false
   duration: 0
+  enable_p426: false
 
   tool:
     bash: bash
@@ -12,6 +13,7 @@ config:
     tcpdump: tcpdump
     tcprewrite: tcprewrite
     tcpprep: tcpprep
+    p426: p426
 
   modifier:
     adjust_time: true  # default is false, you must set it explicit
@@ -25,10 +27,12 @@ config:
     s2: 132
     s3: 123
     s4: 22
+    use_part_3: false
     use_part_4: false
 
   finder:
     directory: /data/.prsdata/pcaps/
+    only_ipv6: false
 
 
 modifiers:
@@ -108,6 +112,7 @@ jobs:
     commands:
       - name: 训练
         command: echo {{.Path}}
+        type: shell
         finder: webshell-predict
 
       - name: 等待训练模型生成
@@ -117,4 +122,5 @@ jobs:
 
       - name: 验证
         command: echo {{.Path}}
+        type: shell
         finder: webshell-detect

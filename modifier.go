@@ -111,7 +111,7 @@ func (m *Modifier) randomEndPoints(hasIPv6 bool) string {
 	if hasIPv6 {
 		c_mask = c_mask + 96
 		s_mask = s_mask + 96
-		return fmt.Sprintf("[::ffff:%d.%d.%d.%d/%d]:[::ffff:%d.%d.%d.%d/%d]", m.C1, m.C2, c3, c4, c_mask, m.S1, m.S2, s3, s4, s_mask)
+		return fmt.Sprintf("[0100::ffff:%02x%02x:%02x%02x/%d]:[0100::ffff:%02x%02x:%02x%02x/%d]", m.C1, m.C2, c3, c4, c_mask, m.S1, m.S2, s3, s4, s_mask)
 	} else {
 		return fmt.Sprintf("%d.%d.%d.%d/%d:%d.%d.%d.%d/%d", m.C1, m.C2, c3, c4, c_mask, m.S1, m.S2, s3, s4, s_mask)
 	}
