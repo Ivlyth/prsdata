@@ -81,6 +81,10 @@ func (p *Pcap) init() error {
 			}
 
 			if p.file.finder.modifier.AdjustTime {
+				if (p.info.error & PCAP_INFO_ERR_LAST_PACKET_TIME) != 0 {
+					err = errors.New(fmt.Sprintf("errors when parse last packet time: %s", p.info.LastPacketTime))
+					return
+				}
 				dst := filepath.Join(p.workingDirectory, fmt.Sprintf("%s.adjust-time", p.file.name))
 				result := pcapTool.adjustTime(p.file.path, dst, p.timeOffset())
 				adjf := File{path: dst}

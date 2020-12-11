@@ -209,34 +209,71 @@ func (f *Finder) loadFromPath(path string, info os.FileInfo, err error) error {
 		return nil
 	}
 
-	if f.PpsLE > 0 && pcap.info.avgPacketRate > f.PpsLE {
-		pcap.showWhy(fmt.Sprintf("pps value %f greater than limit %f", pcap.info.avgPacketRate, f.PpsLE))
-		return nil
+	if f.PpsLE > 0 {
+		if (pcap.info.error & PCAP_INFO_ERR_AVG_PACKET_RATE) != 0 {
+			pcap.showWhy(fmt.Sprintf("errors when parse pps: %s", pcap.info.AvgPacketRate))
+			return nil
+		}
+		if pcap.info.avgPacketRate > f.PpsLE {
+			pcap.showWhy(fmt.Sprintf("pps value %f greater than limit %f", pcap.info.avgPacketRate, f.PpsLE))
+			return nil
+		}
 	}
 
-	if f.PpsGE > 0 && pcap.info.avgPacketRate < f.PpsGE {
-		pcap.showWhy(fmt.Sprintf("pps value %f less than limit %f", pcap.info.avgPacketRate, f.PpsGE))
-		return nil
+	if f.PpsGE > 0 {
+		if (pcap.info.error & PCAP_INFO_ERR_AVG_PACKET_RATE) != 0 {
+			pcap.showWhy(fmt.Sprintf("errors when parse pps: %s", pcap.info.AvgPacketRate))
+			return nil
+		}
+		if pcap.info.avgPacketRate < f.PpsGE {
+			pcap.showWhy(fmt.Sprintf("pps value %f less than limit %f", pcap.info.avgPacketRate, f.PpsGE))
+			return nil
+		}
 	}
 
-	if f.PacketCountLe > 0 && pcap.info.packetCount > f.PacketCountLe {
-		pcap.showWhy(fmt.Sprintf("packet count value %d greater than limit %d", pcap.info.packetCount, f.PacketCountLe))
-		return nil
+
+	if f.PacketCountLe > 0 {
+		if (pcap.info.error & PCAP_INFO_ERR_PACKET_COUNT) != 0 {
+			pcap.showWhy(fmt.Sprintf("errors when parse number of packets: %s", pcap.info.PacketCount))
+			return nil
+		}
+		if pcap.info.packetCount > f.PacketCountLe {
+			pcap.showWhy(fmt.Sprintf("packet count value %d greater than limit %d", pcap.info.packetCount, f.PacketCountLe))
+			return nil
+		}
 	}
 
-	if f.PacketCountGe > 0 && pcap.info.packetCount < f.PacketCountGe {
-		pcap.showWhy(fmt.Sprintf("packet count value %d less than limit %d", pcap.info.packetCount, f.PacketCountGe))
-		return nil
+	if f.PacketCountGe > 0 {
+		if (pcap.info.error & PCAP_INFO_ERR_PACKET_COUNT) != 0 {
+			pcap.showWhy(fmt.Sprintf("errors when parse number of packets: %s", pcap.info.PacketCount))
+			return nil
+		}
+		if pcap.info.packetCount < f.PacketCountGe {
+			pcap.showWhy(fmt.Sprintf("packet count value %d less than limit %d", pcap.info.packetCount, f.PacketCountGe))
+			return nil
+		}
 	}
 
-	if f.AvgPacketSizeLE > 0 && pcap.info.avgPacketSize > f.AvgPacketSizeLE {
-		pcap.showWhy(fmt.Sprintf("avg packet size value %f greater than limit %f", pcap.info.avgPacketSize, f.AvgPacketSizeLE))
-		return nil
+	if f.AvgPacketSizeLE > 0 {
+		if (pcap.info.error & PCAP_INFO_ERR_AVG_PACKET_SIZE) != 0 {
+			pcap.showWhy(fmt.Sprintf("errors when parse avg packet size: %s", pcap.info.AvgPacketSize))
+			return nil
+		}
+		if pcap.info.avgPacketSize > f.AvgPacketSizeLE {
+			pcap.showWhy(fmt.Sprintf("avg packet size value %f greater than limit %f", pcap.info.avgPacketSize, f.AvgPacketSizeLE))
+			return nil
+		}
 	}
 
-	if f.AvgPacketSizeGE > 0 && pcap.info.avgPacketSize < f.AvgPacketSizeGE {
-		pcap.showWhy(fmt.Sprintf("avg packet size value %f less than limit %f", pcap.info.avgPacketSize, f.AvgPacketSizeGE))
-		return nil
+	if f.AvgPacketSizeGE > 0{
+		if (pcap.info.error & PCAP_INFO_ERR_AVG_PACKET_SIZE) != 0 {
+			pcap.showWhy(fmt.Sprintf("errors when parse avg packet size: %s", pcap.info.AvgPacketSize))
+			return nil
+		}
+		if pcap.info.avgPacketSize < f.AvgPacketSizeGE {
+			pcap.showWhy(fmt.Sprintf("avg packet size value %f less than limit %f", pcap.info.avgPacketSize, f.AvgPacketSizeGE))
+			return nil
+		}
 	}
 
 	if f.OnlyIpv6 && !pcap.file.finder.modifier.KeepIp && !pcap.hasIPv6 {
