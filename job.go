@@ -120,3 +120,23 @@ func defaultJobs() []*Job {
 		},
 	}
 }
+
+func fastCopyJob(directory string) *Job {
+	return &Job{
+		Id:     "fast-copy",
+		Name:   "fast-copy",
+		Enable: true,
+		Commands: []*Command{
+			{
+				Name:      "create dst dir",
+				Type:      "shell",
+				Command:   fmt.Sprintf("mkdir -p %s", directory),
+			},
+			{
+				Name:      "copy modified pcap",
+				Command:   fmt.Sprintf("cd %s && mkdir -p {{.RelativeDirectory}} && cp -f {{.Path}} {{.RelativeDirectory}}", directory),
+			},
+		},
+		FinderId: defaultFinder.Id,
+	}
+}

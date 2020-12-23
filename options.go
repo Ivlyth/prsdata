@@ -59,6 +59,7 @@ func init() {
 	rootCmd.Flags().StringSliceP("jobs", "O", nil, "仅执行指定 ID 对应的 job, 逗号分割")
 	rootCmd.Flags().Bool("daemon", false, "作为 daemon 在后台运行")
 	rootCmd.Flags().String("pingback", "", "daemon 模式自动指定, 请勿手动指定")
+	rootCmd.Flags().String("fast-copy", "", "快捷任务, 将查找到的 pcap 修改后拷贝到给定的目录下")
 
 	// default modifier params
 	rootCmd.Flags().BoolP("adjust-time", "a", true, "adjust time or not")
@@ -216,10 +217,18 @@ func parseConfig() {
 	}
 
 	js := []*Job{}
-	_ = V.UnmarshalKey("jobs", &js)
-	if len(js) == 0 {
-		js = append(js, defaultJobs()...)
+
+	if config.FastCopyDirectory != "" {
+		config.SelectedJobs = []string{"fast-copy"}
+		js = append(js, fastCopyJob(config.FastCopyDirectory))
+	} else {
+		_ = V.UnmarshalKey("jobs", &js)
+
+		if len(js) == 0 {
+			js = append(js, defaultJobs()...)
+		}
 	}
+
 	for i, j := range js {
 		if j == nil {
 			logger.Errorf("auto check failed: job at index %d is null", i)

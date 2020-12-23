@@ -25,6 +25,8 @@ type Config struct {
 	AsDaemon bool   `mapstructure:"daemon"`
 	Pingback string `mapstructure:"pingback"`
 
+	FastCopyDirectory string `mapstructure:"fast_copy"`
+
 	KeepData           bool `mapstructure:"keep_data"`
 	Debug              bool `mapstructure:"debug"`
 	JustShowJobs       bool `mapstructure:"just_show_jobs"`
