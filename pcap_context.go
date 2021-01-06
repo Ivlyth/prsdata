@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"html/template"
 )
 
@@ -30,7 +31,21 @@ var samplePcapContext = PcapContext{
 func (p *PcapContext) render(s string) (string, error) {
 	t, _ := template.New("pcap").Parse(s)
 	buf := bytes.Buffer{}
-	err := t.Execute(&buf, *p)
+
+	contextBuf, _ := json.Marshal(*p)
+	context := map[string]interface{}{}
+
+	for k, v := range config.Vars {
+		context[k] = v
+	}
+
+	pcapContext := map[string]interface{}{}
+	_ = json.Unmarshal(contextBuf, &pcapContext)
+	for k, v := range pcapContext {
+		context[k] = v
+	}
+
+	err := t.Execute(&buf, context)
 	if err != nil {
 		return "", err
 	}

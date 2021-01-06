@@ -26,6 +26,7 @@ type Config struct {
 	Pingback string `mapstructure:"pingback"`
 
 	FastCopyDirectory string `mapstructure:"fast_copy"`
+	Vars              map[string]string `mapstructure:"var"`
 
 	KeepData           bool `mapstructure:"keep_data"`
 	Debug              bool `mapstructure:"debug"`

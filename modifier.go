@@ -82,14 +82,17 @@ func (m *Modifier) check() error {
 }
 
 func (m *Modifier) randomEndPoints(hasIPv6 bool) string {
-	c3 := rand.Int31n(255)
-	s3 := rand.Int31n(255)
+	s1 := rand.NewSource(time.Now().UnixNano())
+	r1 := rand.New(s1)
 
-	c4 := rand.Int31n(255)
-	s4 := rand.Int31n(255)
+	c3 := r1.Int31n(255)
+	s3 := r1.Int31n(255)
 
-	c_mask := 16
-	s_mask := 16
+	c4 := r1.Int31n(255)
+	s4 := r1.Int31n(255)
+
+	c_mask := r1.Intn(5)
+	s_mask := r1.Intn(5)
 
 	if m.UsePart4 {
 		c3 = int32(m.C3)
@@ -104,13 +107,16 @@ func (m *Modifier) randomEndPoints(hasIPv6 bool) string {
 		c3 = int32(m.C3)
 		s3 = int32(m.S3)
 
-		c_mask = 24
-		s_mask = 24
+		c_mask += 24
+		s_mask += 24
+	} else {  // use part2
+		c_mask += 16
+		s_mask += 16
 	}
 
 	if hasIPv6 {
-		c_mask = c_mask + 96
-		s_mask = s_mask + 96
+		c_mask += 96
+		s_mask += 96
 		return fmt.Sprintf("[0100::ffff:%02x%02x:%02x%02x/%d]:[0100::ffff:%02x%02x:%02x%02x/%d]", m.C1, m.C2, c3, c4, c_mask, m.S1, m.S2, s3, s4, s_mask)
 	} else {
 		return fmt.Sprintf("%d.%d.%d.%d/%d:%d.%d.%d.%d/%d", m.C1, m.C2, c3, c4, c_mask, m.S1, m.S2, s3, s4, s_mask)
