@@ -28,13 +28,22 @@ var samplePcapContext = PcapContext{
 	Path:             "/path/to/working/directory/finder/pcap/test.pcap",
 }
 
-func (p *PcapContext) render(s string) (string, error) {
+func (p *PcapContext) render(command *Command) (string, error) {
+	s := command.Command
 	t, _ := template.New("pcap").Parse(s)
 	buf := bytes.Buffer{}
 
 	contextBuf, _ := json.Marshal(*p)
 	context := map[string]interface{}{}
 
+	// merge from command vars first
+	if command.Vars != nil {
+		for k, v := range command.Vars {
+			context[k] = v
+		}
+	}
+
+	// then merge from user input
 	for k, v := range config.Vars {
 		context[k] = v
 	}

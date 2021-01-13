@@ -18,15 +18,15 @@ type Config struct {
 	TestTimes           int           `mapstructure:"test_times"`
 	Duration            time.Duration `mapstructure:"duration"`
 	CommandTimeout      time.Duration `mapstructure:"command_timeout"`
-	EnableP426          bool          `mapstructure:"enable_p426"`         // pcap ipv4 to ipv6
+	EnableP426          bool          `mapstructure:"enable_p426"` // pcap ipv4 to ipv6
 	TemporaryDirectory  string        `mapstructure:"temporary_directory"`
 	SelectedJobs        []string      `mapstructure:"jobs"`
 
 	AsDaemon bool   `mapstructure:"daemon"`
 	Pingback string `mapstructure:"pingback"`
 
-	FastCopyDirectory string `mapstructure:"fast_copy"`
-	Vars              map[string]string `mapstructure:"var"`
+	FastCopyDirectory string            `mapstructure:"fast_copy"`
+	Vars              map[string]string `mapstructure:"vars"`
 
 	KeepData           bool `mapstructure:"keep_data"`
 	Debug              bool `mapstructure:"debug"`

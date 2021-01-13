@@ -9,12 +9,13 @@ import (
 type Command struct {
 	Index int
 
-	Name      string        `mapstructure:"name"`
-	Command   string        `mapstructure:"command"`
-	Directory string        `mapstructure:"directory"`
-	Type      string        `mapstructure:"type"` // shell or pcap, default is pcap
-	Timeout   time.Duration `mapstructure:"timeout"`
-	FinderId  string        `mapstructure:"finder"` // if not provide, use Job's
+	Name      string                 `mapstructure:"name"`
+	Command   string                 `mapstructure:"command"`
+	Vars      map[string]interface{} `mapstructure:"vars"`
+	Directory string                 `mapstructure:"directory"`
+	Type      string                 `mapstructure:"type"` // shell or pcap, default is pcap
+	Timeout   time.Duration          `mapstructure:"timeout"`
+	FinderId  string                 `mapstructure:"finder"` // if not provide, use Job's
 
 	job    *Job
 	finder *Finder

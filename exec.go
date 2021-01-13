@@ -58,7 +58,7 @@ func execRealCommand(realCommand *RealCommand) *ExecResult {
 			PacketCount:       realCommand.pcap.info.packetCount,
 		}
 
-		renderedCommand, err := pcapContext.render(realCommand.command.Command)
+		renderedCommand, err := pcapContext.render(realCommand.command)
 		if err != nil {
 			return errResult(err)
 		}
