@@ -26,6 +26,9 @@ func checkId(id string) error {
 	if id == "" {
 		return errors.New("id can not be null")
 	}
+	if id == "all" {
+		return errors.New("id can not be `all`")
+	}
 	if !idPattern.MatchString(id) {
 		return errors.New("invalid id format")
 	}

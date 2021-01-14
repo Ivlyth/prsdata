@@ -60,7 +60,7 @@ func init() {
 	rootCmd.Flags().Bool("daemon", false, "作为 daemon 在后台运行")
 	rootCmd.Flags().String("pingback", "", "daemon 模式自动指定, 请勿手动指定")
 	rootCmd.Flags().String("fast-copy", "", "快捷任务, 将查找到的 pcap 修改后拷贝到给定的目录下")
-	rootCmd.Flags().StringToString("var", map[string]string{}, "设定自定义变量的值用于命令渲染, 比如 --var a=b, 可多次使用")
+	rootCmd.Flags().StringToString("vars", map[string]string{}, "设定自定义变量的值用于命令渲染, 比如 --vars a=b, 可多次使用")
 
 	// default modifier params
 	rootCmd.Flags().BoolP("adjust-time", "a", true, "adjust time or not")
@@ -132,7 +132,7 @@ func parseArgs(cmd *cobra.Command) {
 
 			buf, err1 := ioutil.ReadFile(configFile)
 			if err1 != nil {
-				logger.Errorf("error when ")
+				logger.Errorf("error when read from config file %s, %s\n", configFile, err1)
 				terminate()
 			}
 

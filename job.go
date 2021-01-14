@@ -40,7 +40,7 @@ func (j *Job) check() error {
 	}
 
 	if config.SelectedJobs != nil && len(config.SelectedJobs) > 0 {
-		if contains(config.SelectedJobs, j.Id) {
+		if contains(config.SelectedJobs, j.Id) || contains(config.SelectedJobs, "all") {
 			j.Enable = true
 		} else {
 			j.Enable = false
@@ -89,7 +89,11 @@ func defaultJobs() []*Job {
 			Commands: []*Command{
 				{
 					Name:      "zeek",
-					Command:   "cd {{.FinderDirectory}} && /opt/zeek/bin/zeek -r {{.RelativePath}} -C /opt/zeek-scripts/tophant.entrypoint.zeek",
+					Vars:      map[string]interface{}{
+						"bro": "/usr/local/bro/bin/bro",
+						"bro_config": "/opt/bro-scripts/tophant.entrypoint.bro",
+					},
+					Command:   "cd {{.FinderDirectory}} && {{.bro}} -r {{.RelativePath}} -C {{.bro_config}}",
 				},
 			},
 			FinderId: defaultFinder.Id,
@@ -101,7 +105,11 @@ func defaultJobs() []*Job {
 			Commands: []*Command{
 				{
 					Name:      "suricata",
-					Command:   "cd {{.FinderDirectory}} && /opt/suricata/bin/suricata -c /opt/suricata/etc/suricata/suricata.yaml -r {{.RelativePath}} -k none --runmode autofp",
+					Vars:      map[string]interface{}{
+						"suricata": "/usr/local/suricata/bin/suricata",
+						"suricata_config": "/usr/local/suricata/etc/suricata/suricata.yaml",
+					},
+					Command:   "cd {{.FinderDirectory}} && {{.suricata}} -c {{.suricata_config}} -r {{.RelativePath}} -k none --runmode autofp",
 				},
 			},
 			FinderId: defaultFinder.Id,
@@ -113,7 +121,11 @@ func defaultJobs() []*Job {
 			Commands: []*Command{
 				{
 					Name:      "moloch",
-					Command:   "cd {{.FinderDirectory}} && /data/moloch/bin/moloch-capture --insecure -c /data/moloch/etc/config.ini -r {{.RelativePath}}",
+					Vars:      map[string]interface{}{
+						"moloch": "/data/moloch/bin/moloch-capture",
+						"moloch_config": "/data/moloch/etc/config.ini",
+					},
+					Command:   "cd {{.FinderDirectory}} && {{.moloch}} --insecure -c {{.moloch_config}} -r {{.RelativePath}}",
 				},
 			},
 			FinderId: defaultFinder.Id,
@@ -125,7 +137,7 @@ func fastCopyJob(directory string) *Job {
 	return &Job{
 		Id:     "fast-copy",
 		Name:   "fast-copy",
-		Enable: true,
+		Enable: false,
 		Commands: []*Command{
 			{
 				Name:      "create dst dir",
