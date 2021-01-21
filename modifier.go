@@ -31,6 +31,11 @@ type Modifier struct {
 	UsePart3  bool `mapstructure:"use_part_3"`
 	UsePart4  bool `mapstructure:"use_part_4"`
 
+	// 尝试将 IPv4 转换为 IPv6
+	P426      bool
+	// 大于 0 表示开启 payload shuffle，保留指定数量的字节不打乱
+	Shuffle   int
+
 	Used bool // 是否被某个 job 的 command 使用到
 }
 

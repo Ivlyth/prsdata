@@ -18,7 +18,6 @@ type Config struct {
 	TestTimes           int           `mapstructure:"test_times"`
 	Duration            time.Duration `mapstructure:"duration"`
 	CommandTimeout      time.Duration `mapstructure:"command_timeout"`
-	EnableP426          bool          `mapstructure:"enable_p426"` // pcap ipv4 to ipv6
 	TemporaryDirectory  string        `mapstructure:"temporary_directory"`
 	SelectedJobs        []string      `mapstructure:"jobs"`
 

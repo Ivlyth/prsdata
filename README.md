@@ -208,8 +208,9 @@ config:
   concurrency_jobs: 2
   concurrency_commands: 6
   test_times: 1
-  debug: false
   duration: 0
+  command_timeout: 30s
+  debug: false
 
   tool:
     bash: bash
@@ -218,6 +219,7 @@ config:
     tcpdump: tcpdump
     tcprewrite: tcprewrite
     tcpprep: tcpprep
+    p426: p426
 
   modifier:
     adjust_time: true  # default is false, you must set it explicit

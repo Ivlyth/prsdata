@@ -4,7 +4,6 @@ config:
   test_times: 1
   debug: false
   duration: 0
-  enable_p426: false
 
   tool:
     bash: bash
@@ -13,7 +12,6 @@ config:
     tcpdump: tcpdump
     tcprewrite: tcprewrite
     tcpprep: tcpprep
-    p426: p426
 
   modifier:
     adjust_time: true  # default is false, you must set it explicit
@@ -29,6 +27,8 @@ config:
     s4: 22
     use_part_3: false
     use_part_4: false
+    p426: false
+    shuffle: 0
 
   finder:
     directory: /data/.prsdata/pcaps/

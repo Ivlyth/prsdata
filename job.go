@@ -83,12 +83,12 @@ func (j *Job) check() error {
 func defaultJobs() []*Job {
 	return []*Job{
 		{
-			Id:     "zeek",
-			Name:   "default job for zeek",
+			Id:     "bro",
+			Name:   "default job for bro",
 			Enable: true,
 			Commands: []*Command{
 				{
-					Name:      "zeek",
+					Name:      "bro",
 					Vars:      map[string]interface{}{
 						"bro": "/usr/local/bro/bin/bro",
 						"bro_config": "/opt/bro-scripts/tophant.entrypoint.bro",
@@ -108,6 +108,22 @@ func defaultJobs() []*Job {
 					Vars:      map[string]interface{}{
 						"suricata": "/usr/local/suricata/bin/suricata",
 						"suricata_config": "/usr/local/suricata/etc/suricata/suricata.yaml",
+					},
+					Command:   "cd {{.FinderDirectory}} && {{.suricata}} -c {{.suricata_config}} -r {{.RelativePath}} -k none --runmode autofp",
+				},
+			},
+			FinderId: defaultFinder.Id,
+		},
+		{
+			Id:     "new-suricata",
+			Name:   "default job for new suricata",
+			Enable: false,
+			Commands: []*Command{
+				{
+					Name:      "suricata",
+					Vars:      map[string]interface{}{
+						"suricata": "/opt/suricata/bin/suricata",
+						"suricata_config": "/opt/suricata/etc/suricata/suricata.yaml",
 					},
 					Command:   "cd {{.FinderDirectory}} && {{.suricata}} -c {{.suricata_config}} -r {{.RelativePath}} -k none --runmode autofp",
 				},

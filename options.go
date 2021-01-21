@@ -45,7 +45,6 @@ func init() {
 	rootCmd.Flags().IntP("concurrency-jobs", "C", 6, "并发 job 数量")
 	rootCmd.Flags().IntP("concurrency-commands", "c", 6, "并发 command 数量")
 	rootCmd.Flags().IntP("test-times", "T", 1, "测试轮数")
-	rootCmd.Flags().BoolP("enable-p426", "6", false, "将 IPv4 的 pcap 额外修改为 IPv6 并再次重放")
 	rootCmd.Flags().Bool("debug", false, "debug mode")
 	rootCmd.Flags().DurationP("duration", "D", 0, "最大运行时长, 0 表示不限制, 可以使用诸如 1h3m5s 的表达式")
 	rootCmd.Flags().DurationP("command-timeout", "S", 30*time.Second, "默认的单个命令执行时长")
@@ -76,6 +75,8 @@ func init() {
 	rootCmd.Flags().Int("s4", 22, "s4")
 	rootCmd.Flags().BoolP("use-part-3", "3", false, "use part 3 or not")
 	rootCmd.Flags().BoolP("use-part-4", "4", false, "use part 4 or not")
+	rootCmd.Flags().BoolP("p426", "6", false, "将 IPv4 的 pcap 修改为 IPv6")
+	rootCmd.Flags().IntP("shuffle", "s", 0, "保留指定字节数后随机打乱剩余 payload")
 
 	// default finder params
 	rootCmd.Flags().StringP("directory", "d", "/data/.prsdata/pcaps/", "pcap search directory")
@@ -95,7 +96,6 @@ func init() {
 	rootCmd.Flags().String("tcpdump", "tcpdump", "tcpdump path")
 	rootCmd.Flags().String("tcprewrite", "tcprewrite", "tcprewrite path")
 	rootCmd.Flags().String("tcpprep", "tcpprep", "tcpprep path")
-	rootCmd.Flags().String("p426", "p426", "p426 path")
 
 	rootCmd.Flags().BoolP("version", "V", false, "show version")
 

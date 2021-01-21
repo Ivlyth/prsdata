@@ -11,5 +11,5 @@ func (p *PcapTool) getPcapInfo(src string, timeout time.Duration) *ExecResult {
 	if timeout == 0 {
 		timeout = config.CommandTimeout
 	}
-	return execShellCommand(fmt.Sprintf("%s -K -EMHS -uaezxcsd %s", p.Capinfos, src), timeout)
+	return execShellCommand(fmt.Sprintf("%s -K -EMHS -tuaezxcsd %s", p.Capinfos, src), timeout)
 }

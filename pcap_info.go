@@ -16,6 +16,7 @@ var (
 )
 
 type PcapInfo struct {
+	FileType        string `mapstructure:"file type"`
 	Encapsulation   string `mapstructure:"file encapsulation"`
 	PacketCount     string `mapstructure:"number of packets"`
 	CaptureDuration string `mapstructure:"capture duration"`
@@ -35,6 +36,10 @@ type PcapInfo struct {
 	avgPacketRate   float64 // aka. pps
 
 	error int64
+}
+
+func (p *PcapInfo) IsPcapNG() bool {
+	return p.FileType != "" && strings.Contains(p.FileType, "pcapng")
 }
 
 func (p *PcapInfo) parse() error {
