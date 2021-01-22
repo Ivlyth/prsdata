@@ -227,12 +227,19 @@ func parseConfig() {
 
 		if len(js) == 0 {
 			js = append(js, defaultJobs()...)
+
+			if len(config.SelectedJobs) == 0 { // use default jobs, but no selected job
+				logger.Warnln(fmt.Sprintf("The default job must be explicitly enabled by -O XXX,YYY flag, available jobs are:"))
+				for _, job := range js {
+					logger.Warnln(fmt.Sprintf("- %s", job.Id))
+				}
+			}
 		}
 	}
 
 	for i, j := range js {
 		if j == nil {
-			logger.Errorf("auto check failed: job at index %d is null", i)
+			logger.Errorln(fmt.Sprintf("auto check failed: job at index %d is null", i))
 			terminate()
 		}
 		check(j)

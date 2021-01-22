@@ -85,7 +85,7 @@ func defaultJobs() []*Job {
 		{
 			Id:     "bro",
 			Name:   "default job for bro",
-			Enable: true,
+			Enable: false,
 			Commands: []*Command{
 				{
 					Name:      "bro",
@@ -99,9 +99,25 @@ func defaultJobs() []*Job {
 			FinderId: defaultFinder.Id,
 		},
 		{
-			Id:     "suricata",
-			Name:   "default job for suricata",
-			Enable: true,
+			Id:     "zeek",
+			Name:   "default job for zeek",
+			Enable: false,
+			Commands: []*Command{
+				{
+					Name:      "zeek",
+					Vars:      map[string]interface{}{
+						"zeek": "/opt/zeek/bin/zeek",
+						"zeek_config": "/opt/zeek-scripts/tophant.entrypoint.zeek",
+					},
+					Command:   "cd {{.FinderDirectory}} && {{.zeek}} -r {{.RelativePath}} -C {{.zeek_config}}",
+				},
+			},
+			FinderId: defaultFinder.Id,
+		},
+		{
+			Id:     "old-suricata",
+			Name:   "default job for old suricata",
+			Enable: false,
 			Commands: []*Command{
 				{
 					Name:      "suricata",
