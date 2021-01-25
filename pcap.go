@@ -33,10 +33,11 @@ type Pcap struct {
 }
 
 func (p *Pcap) String() string {
-	if config.JustShowPcaps {
+	if p.info != nil && config.JustShowPcaps {
 		return fmt.Sprintf("%s [Pcap-%s] %d packets, %.2f pps, %.2f avg packet size", p.file.finder, p.file.relativePath, p.info.packetCount, p.info.avgPacketRate, p.info.avgPacketSize)
+	} else {
+		return fmt.Sprintf("%s [Pcap-%s]", p.file.finder, p.file.relativePath)
 	}
-	return fmt.Sprintf("%s [Pcap-%s]", p.file.finder, p.file.relativePath)
 }
 
 func (p *Pcap) init() error {

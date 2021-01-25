@@ -20,8 +20,12 @@ func exit(code int) {
 }
 
 func terminate() {
+	waiting := 0
+	if RUNNING {
+		waiting = 1
+	}
 	RUNNING = false
-	exit(1)
+	exit(waiting)
 }
 
 func copyTo(src, dst string) error {

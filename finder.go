@@ -116,6 +116,26 @@ func (f *Finder) check() error {
 				return errors.New(fmt.Sprintf("pattern at index %d is empty", i))
 			}
 
+			if filepath.IsAbs(pattern) {  // abs path used
+				absPattern, _ := filepath.Abs(pattern)
+				// remove the prefix silently
+				if absPattern == f.absDirectory {
+					logger.Warnln(fmt.Sprintf("pattern `%s` is the same as finder's directory, ignore it", pattern))
+					continue
+				}
+
+				// anti /data/.prsdata/pcaps/xff-test  /data/.prsdata/pcaps/xff
+				parentDirectory := filepath.Dir(absPattern)
+				if strings.HasPrefix(absPattern, f.absDirectory) && strings.HasPrefix(parentDirectory, f.absDirectory) {
+					pattern = absPattern[len(f.absDirectory):]
+					if pattern[0] == '/' {
+						pattern = pattern[1:]
+					}
+				} else {
+					return errors.New(fmt.Sprintf("pattern `%s` detect as a ABS path, but not in the finder's directory", pattern))
+				}
+			}
+
 			if pattern[len(pattern)-1:] != "*" {
 				pattern = pattern + "*"
 			}
