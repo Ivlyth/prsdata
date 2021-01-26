@@ -39,7 +39,11 @@ type PcapInfo struct {
 }
 
 func (p *PcapInfo) IsPcapNG() bool {
-	return p.FileType != "" && strings.Contains(p.FileType, "pcapng")
+	return p.FileType != "" && strings.Contains(strings.ToLower(p.FileType), "pcapng")
+}
+
+func (p *PcapInfo) IsEthernet() bool {
+	return p.Encapsulation != "" && strings.Contains(strings.ToLower(p.Encapsulation), "ethernet")
 }
 
 func (p *PcapInfo) parse() error {

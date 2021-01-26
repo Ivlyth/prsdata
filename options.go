@@ -88,6 +88,7 @@ func init() {
 	rootCmd.Flags().Int("avg-packet-size-le", 0, "avg packet size less than or equal to given value")
 	rootCmd.Flags().Int("avg-packet-size-ge", 0, "avg packet size greater than or equal to given value")
 	rootCmd.Flags().Bool("only-ipv6",  false, "find only ipv6 pcap")
+	rootCmd.Flags().BoolP("only-ethernet",  "E",true, "find only ethernet pcap")
 
 	// default tool path params
 	rootCmd.Flags().String("bash", "bash", "bash path")

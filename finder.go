@@ -29,6 +29,7 @@ type Finder struct {
 	AvgPacketSizeLE float64  `mapstructure:"avg_packet_size_le"`
 	AvgPacketSizeGE float64  `mapstructure:"avg_packet_size_ge"`
 	OnlyIpv6        bool     `mapstructure:"only_ipv6"`
+	OnlyEthernet    bool     `mapstructure:"only_ethernet"`
 	Used            bool     // 是否被某个 job 的 command 使用到
 
 	absDirectory string // auto
@@ -229,6 +230,11 @@ func (f *Finder) loadFromPath(path string, info os.FileInfo, err error) error {
 		return nil
 	}
 
+	if f.OnlyEthernet && !pcap.info.IsEthernet() {
+		pcap.showWhy(fmt.Sprintf("not ethernet encapsulation (%s)", pcap.info.Encapsulation))
+		return nil
+	}
+
 	if f.PpsLE > 0 {
 		if (pcap.info.error & PCAP_INFO_ERR_AVG_PACKET_RATE) != 0 {
 			pcap.showWhy(fmt.Sprintf("errors when parse pps: %s", pcap.info.AvgPacketRate))
@@ -285,7 +291,7 @@ func (f *Finder) loadFromPath(path string, info os.FileInfo, err error) error {
 		}
 	}
 
-	if f.AvgPacketSizeGE > 0{
+	if f.AvgPacketSizeGE > 0 {
 		if (pcap.info.error & PCAP_INFO_ERR_AVG_PACKET_SIZE) != 0 {
 			pcap.showWhy(fmt.Sprintf("errors when parse avg packet size: %s", pcap.info.AvgPacketSize))
 			return nil
