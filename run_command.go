@@ -33,11 +33,12 @@ func (r *RealCommand) run() {
 	duration := end.Sub(start)
 
 	if !result.succeed {
+		err := result.err.Error()
 		reason := result.output
 		if reason == "" {
-			reason = result.err.Error()
+			reason = "<empty output>"
 		}
-		logger.Errorln(fmt.Sprintf("%s execute failed, use: %s, output is:\n%s", r, duration, reason))
+		logger.Errorln(fmt.Sprintf("%s execute failed, use: %s, err is: %s, output is:\n%s\n", r, duration, err, reason))
 	} else {
 		logger.Infoln(fmt.Sprintf("%s execute succeed, use: %s", r, duration))
 	}
