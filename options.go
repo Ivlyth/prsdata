@@ -77,6 +77,7 @@ func init() {
 	rootCmd.Flags().BoolP("use-part-4", "4", false, "use part 4 or not")
 	rootCmd.Flags().BoolP("p426", "6", false, "将 IPv4 的 pcap 修改为 IPv6")
 	rootCmd.Flags().IntP("shuffle", "s", 0, "保留指定字节数后随机打乱剩余 payload")
+	rootCmd.Flags().StringP("tshark-filter", "R", "", "tshark 的 Read filter, modifier 会根据该 filter 生成一个新的 pcap 供后续处理")
 
 	// default finder params
 	rootCmd.Flags().StringP("directory", "d", "/data/.prsdata/pcaps/", "pcap search directory")
@@ -89,14 +90,16 @@ func init() {
 	rootCmd.Flags().Int("avg-packet-size-ge", 0, "avg packet size greater than or equal to given value")
 	rootCmd.Flags().Bool("only-ipv6",  false, "find only ipv6 pcap")
 	rootCmd.Flags().BoolP("only-ethernet",  "E",true, "find only ethernet pcap")
+	rootCmd.Flags().StringP("tshark-read-filter", "F", "", "tshark 的 Read filter, finder 主要根据该 filter 后的 pcap 的 packet 数量决定是否进一步处理该 pcap")
 
 	// default tool path params
-	rootCmd.Flags().String("bash", "bash", "bash path")
-	rootCmd.Flags().String("capinfos", "capinfos", "capinfos path")
-	rootCmd.Flags().String("editcap", "editcap", "editcap path")
-	rootCmd.Flags().String("tcpdump", "tcpdump", "tcpdump path")
-	rootCmd.Flags().String("tcprewrite", "tcprewrite", "tcprewrite path")
-	rootCmd.Flags().String("tcpprep", "tcpprep", "tcpprep path")
+	rootCmd.Flags().String("bash", "bash", "bash binary path")
+	rootCmd.Flags().String("capinfos", "capinfos", "capinfos binary path")
+	rootCmd.Flags().String("editcap", "editcap", "editcap binary path")
+	rootCmd.Flags().String("tcpdump", "tcpdump", "tcpdump binary path")
+	rootCmd.Flags().String("tcprewrite", "tcprewrite", "tcprewrite binary path")
+	rootCmd.Flags().String("tcpprep", "tcpprep", "tcpprep binary path")
+	rootCmd.Flags().String("tshark", "tshark", "tshark binary path")
 
 	rootCmd.Flags().BoolP("version", "V", false, "show version")
 

@@ -96,6 +96,30 @@ func (p *Pcap) init() error {
 				}
 			}
 
+			if p.file.finder.TsharkReadFilter != "" {
+				pcapType := "pcap"
+				if p.info.IsPcapNG() {
+					pcapType = "pcapng"
+				}
+				rfFile := filepath.Join(p.workingDirectory, fmt.Sprintf("%s.tshark_rf", p.file.name))
+				result := pcapTool.tsharkReadFilter(p.file.path, rfFile, p.file.finder.TsharkReadFilter, pcapType, 0)
+				if !result.succeed {
+					err = result.err
+					return
+				}
+				info2, err2 := parsePcapInfo(rfFile)
+				rff := File{path: rfFile}
+				defer rff.delete()
+				if err2 != nil {
+					err = err2
+					return
+				}
+				if info2.packetCount <= 0 {
+					err = errors.New("no packets left after tshark filter")
+					return
+				}
+			}
+
 			if !p.file.finder.modifier.KeepIp {
 				// first, generate cache file
 				p.cacheFilePath = filepath.Join(p.workingDirectory, fmt.Sprintf("%s.cache", p.file.name))
@@ -111,10 +135,11 @@ func (p *Pcap) init() error {
 					err = result.err
 					return
 				}
-				info2, err := parsePcapInfo(ipv6File)
+				info2, err2 := parsePcapInfo(ipv6File)
 				ipv6f := File{path: ipv6File}
 				defer ipv6f.delete()
-				if err != nil && info2 == nil {
+				if err2 != nil {
+					err = err2
 					return
 				}
 				p.hasIPv6 = info2.packetCount > 0
@@ -153,9 +178,25 @@ func (p *Pcap) new() (string, error) {
 		return "", err
 	}
 
+	nfrf := fmt.Sprintf("%s.rf%s", srcBase, p.file.ext)
 	nfp426 := fmt.Sprintf("%s.p426%s", srcBase, p.file.ext)
 	nft := fmt.Sprintf("%s.adjust-time%s", srcBase, p.file.ext)
 	nfm := fmt.Sprintf("%s.modify-ip%s", srcBase, p.file.ext)
+
+	if p.file.finder.modifier.TsharkReadFilter != "" {
+		pcapType := "pcap"
+		if p.info.IsPcapNG() {
+			pcapType = "pcapng"
+		}
+		result := pcapTool.tsharkReadFilter(src, nfrf, p.file.finder.modifier.TsharkReadFilter, pcapType, 0)
+		if !result.succeed {
+			return "", result.err
+		}
+		err := os.Rename(nfrf, src)
+		if err != nil {
+			return "", err
+		}
+	}
 
 	if p.file.finder.modifier.P426 {
 		err := ConvertPCAP(src, nfp426, p.info.IsPcapNG())

@@ -19,22 +19,24 @@ type Modifier struct {
 	AdjustTime bool          `mapstructure:"adjust_time"`
 	TimeOffset time.Duration `mapstructure:"time_offset"`
 
-	KeepIp    bool `mapstructure:"keep_ip"`
-	C1        int  `mapstructure:"c1"`
-	C2        int  `mapstructure:"c2"`
-	C3        int  `mapstructure:"c3"`
-	C4        int  `mapstructure:"c4"`
-	S1        int  `mapstructure:"s1"`
-	S2        int  `mapstructure:"s2"`
-	S3        int  `mapstructure:"s3"`
-	S4        int  `mapstructure:"s4"`
-	UsePart3  bool `mapstructure:"use_part_3"`
-	UsePart4  bool `mapstructure:"use_part_4"`
+	KeepIp   bool `mapstructure:"keep_ip"`
+	C1       int  `mapstructure:"c1"`
+	C2       int  `mapstructure:"c2"`
+	C3       int  `mapstructure:"c3"`
+	C4       int  `mapstructure:"c4"`
+	S1       int  `mapstructure:"s1"`
+	S2       int  `mapstructure:"s2"`
+	S3       int  `mapstructure:"s3"`
+	S4       int  `mapstructure:"s4"`
+	UsePart3 bool `mapstructure:"use_part_3"`
+	UsePart4 bool `mapstructure:"use_part_4"`
 
 	// 尝试将 IPv4 转换为 IPv6
-	P426      bool
+	P426 bool
 	// 大于 0 表示开启 payload shuffle，保留指定数量的字节不打乱
-	Shuffle   int
+	Shuffle int `mapstructure:"shuffle"`
+
+	TsharkReadFilter string `mapstructure:"tshark_filter"`
 
 	Used bool // 是否被某个 job 的 command 使用到
 }
@@ -114,7 +116,7 @@ func (m *Modifier) randomEndPoints(hasIPv6 bool) string {
 
 		c_mask += 24
 		s_mask += 24
-	} else {  // use part2
+	} else { // use part2
 		c_mask += 16
 		s_mask += 16
 	}

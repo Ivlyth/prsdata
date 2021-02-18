@@ -18,19 +18,20 @@ var (
 )
 
 type Finder struct {
-	Id              string   `mapstructure:"id"`
-	Directory       string   `mapstructure:"directory"` // from user
-	Patterns        []string `mapstructure:"patterns"`
-	ModifierId      string   `mapstructure:"modifier"`
-	PpsLE           float64  `mapstructure:"pps_le"`
-	PpsGE           float64  `mapstructure:"pps_ge"`
-	PacketCountLe   int64    `mapstructure:"packet_count_le"`
-	PacketCountGe   int64    `mapstructure:"packet_count_ge"`
-	AvgPacketSizeLE float64  `mapstructure:"avg_packet_size_le"`
-	AvgPacketSizeGE float64  `mapstructure:"avg_packet_size_ge"`
-	OnlyIpv6        bool     `mapstructure:"only_ipv6"`
-	OnlyEthernet    bool     `mapstructure:"only_ethernet"`
-	Used            bool     // 是否被某个 job 的 command 使用到
+	Id               string   `mapstructure:"id"`
+	Directory        string   `mapstructure:"directory"` // from user
+	Patterns         []string `mapstructure:"patterns"`
+	ModifierId       string   `mapstructure:"modifier"`
+	PpsLE            float64  `mapstructure:"pps_le"`
+	PpsGE            float64  `mapstructure:"pps_ge"`
+	PacketCountLe    int64    `mapstructure:"packet_count_le"`
+	PacketCountGe    int64    `mapstructure:"packet_count_ge"`
+	AvgPacketSizeLE  float64  `mapstructure:"avg_packet_size_le"`
+	AvgPacketSizeGE  float64  `mapstructure:"avg_packet_size_ge"`
+	OnlyIpv6         bool     `mapstructure:"only_ipv6"`
+	OnlyEthernet     bool     `mapstructure:"only_ethernet"`
+	TsharkReadFilter string   `mapstructure:"tshark_read_filter"`
+	Used             bool     // 是否被某个 job 的 command 使用到
 
 	absDirectory string // auto
 	patterns     []*regexp.Regexp
@@ -117,7 +118,7 @@ func (f *Finder) check() error {
 				return errors.New(fmt.Sprintf("pattern at index %d is empty", i))
 			}
 
-			if filepath.IsAbs(pattern) {  // abs path used
+			if filepath.IsAbs(pattern) { // abs path used
 				absPattern, _ := filepath.Abs(pattern)
 				// remove the prefix silently
 				if absPattern == f.absDirectory {
@@ -256,7 +257,6 @@ func (f *Finder) loadFromPath(path string, info os.FileInfo, err error) error {
 			return nil
 		}
 	}
-
 
 	if f.PacketCountLe > 0 {
 		if (pcap.info.error & PCAP_INFO_ERR_PACKET_COUNT) != 0 {

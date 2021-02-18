@@ -18,6 +18,7 @@ type PcapTool struct {
 	Tcpdump    string `mapstructure:"tcpdump"`
 	Tcprewrite string `mapstructure:"tcprewrite"`
 	Tcpprep    string `mapstructure:"tcpprep"`
+	Tshark     string `mapstructure:"tshark"`
 }
 
 func (p *PcapTool) String() string {
@@ -32,6 +33,7 @@ func (p *PcapTool) check() error {
 		"tcpdump":    &p.Tcpdump,
 		"tcprewrite": &p.Tcprewrite,
 		"tcpprep":    &p.Tcpprep,
+		"tshark":     &p.Tshark,
 	} {
 		if !filepath.IsAbs(*path) {
 			// find in path
@@ -79,4 +81,11 @@ func (p *PcapTool) filterIPv6(src, dst string, timeout time.Duration) *ExecResul
 		timeout = config.CommandTimeout
 	}
 	return execShellCommand(fmt.Sprintf("%s -r %s -w %s -c 1 ip6", p.Tcpdump, src, dst), timeout)
+}
+
+func (p *PcapTool) tsharkReadFilter(src, dst, readFilter, pcapType string, timeout time.Duration) *ExecResult {
+	if timeout == 0 {
+		timeout = config.CommandTimeout
+	}
+	return execShellCommand(fmt.Sprintf("%s -r %s -2 -R '%s' -F %s -w %s ", p.Tshark, src, readFilter, pcapType, dst), timeout)
 }
