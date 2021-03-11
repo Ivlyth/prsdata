@@ -17,7 +17,14 @@ type pcapWriter interface {
 	WritePacket(ci gopacket.CaptureInfo, data []byte) error
 }
 
-func shufflePCAP(oldFilename, newFilename string, usePcapNg bool, keepN int) error {
+type ShuffleOptions struct {
+	KeepN  		 int
+	RandomPacket bool
+	RandomPacketN int
+	RandomPacketM int
+}
+
+func shufflePCAP(oldFilename, newFilename string, usePcapNg bool, options ShuffleOptions) error {
 	oldFile, err := os.Open(oldFilename)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -44,10 +51,10 @@ func shufflePCAP(oldFilename, newFilename string, usePcapNg bool, keepN int) err
 		return fmt.Errorf("the extension of old file %s must be equal to the new file %s", oldFilename, newFilename)
 	}
 
-	return shufflePacketByReader(oldFile, newFile, usePcapNg, keepN)
+	return shufflePacketByReader(oldFile, newFile, usePcapNg, options)
 }
 
-func shufflePacketByReader(oldFileReader io.Reader, newFileWriter io.Writer, usePcapNg bool, keepN int) error {
+func shufflePacketByReader(oldFileReader io.Reader, newFileWriter io.Writer, usePcapNg bool, options ShuffleOptions) error {
 	var oldFileSource *gopacket.PacketSource
 	var linkType layers.LinkType
 
@@ -95,14 +102,27 @@ func shufflePacketByReader(oldFileReader io.Reader, newFileWriter io.Writer, use
 		newPcapWriter = writer
 	}
 
-	return shufflePacketAndWrite(oldFileSource, newPcapWriter, keepN)
+	return shufflePacketAndWrite(oldFileSource, newPcapWriter, options)
 }
 
-func shufflePacketAndWrite(oldPacketSource *gopacket.PacketSource, newFileWriter pcapWriter, keepN int) error {
+func shufflePacketAndWrite(oldPacketSource *gopacket.PacketSource, newFileWriter pcapWriter, options ShuffleOptions) error {
 	packets := make([]gopacket.Packet, 0, 10)
 
 	for packet := range oldPacketSource.Packets() {
 		packets = append(packets, packet)
+	}
+
+	// 保留 前n 后m 然后对中间部分进行打乱
+	// 如果 小于等于 n+m+1 个 packet, 不进行操作
+	if options.RandomPacket && len(packets) > (options.RandomPacketN + options.RandomPacketM + 1) {
+		tmpPackets := packets[options.RandomPacketN:len(packets) - options.RandomPacketM]
+
+		s1 := rand.NewSource(time.Now().UnixNano())
+		r1 := rand.New(s1)
+
+		r1.Shuffle(len(tmpPackets), func(i, j int) {
+			tmpPackets[i], tmpPackets[j] = tmpPackets[j], tmpPackets[i]
+		})
 	}
 
 	newPackets := make([][]byte, 0, len(packets))
@@ -110,24 +130,35 @@ func shufflePacketAndWrite(oldPacketSource *gopacket.PacketSource, newFileWriter
 	shuffledCount := 0
 
 	for i, packet := range packets {
-		b, err := shufflePacketPayload(packet, keepN)
+		var b []byte
+		var err error
 
-		if err != nil {
-			logger.Debugf("Cannot shuffle packet [%d], not modify. (%s)\n", i, err)
+		if options.KeepN > 0 {
+			b, err = shufflePacketPayload(packet, options.KeepN)
 
+			if err != nil {
+				logger.Debugf("Cannot shuffle packet [%d], not modify. (%s)\n", i, err)
+
+				b, err = serializePacket(packet)
+
+				if err != nil {
+					return fmt.Errorf("invalid packet [%d] (cannot serialize): %w", i, err)
+				}
+			} else {
+				shuffledCount ++
+			}
+		} else {
 			b, err = serializePacket(packet)
 
 			if err != nil {
 				return fmt.Errorf("invalid packet [%d] (cannot serialize): %w", i, err)
 			}
-		} else {
-			shuffledCount ++
 		}
 
 		newPackets = append(newPackets, b)
 	}
 
-	if shuffledCount == 0 {
+	if options.KeepN > 0 && shuffledCount == 0 {
 		return fmt.Errorf("can not shuffle any packet")
 	}
 

@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -34,7 +36,12 @@ type Modifier struct {
 	// 尝试将 IPv4 转换为 IPv6
 	P426 bool
 	// 大于 0 表示开启 payload shuffle，保留指定数量的字节不打乱
-	Shuffle int `mapstructure:"shuffle"`
+	ShufflePayload int    `mapstructure:"shuffle_payload"`
+	ShufflePacket  string `mapstructure:"shuffle_packet"`
+
+	shufflePacket bool    // 是否开启 packet 顺序随机打乱功能
+	shufflePacketN  int   // 保留前 n 个
+	shufflePacketM  int   // 保留后 m 个
 
 	TsharkReadFilter string `mapstructure:"tshark_filter"`
 
@@ -83,6 +90,36 @@ func (m *Modifier) check() error {
 	}
 	if m.S4 < 0 || m.S4 > 255 {
 		return errors.New(fmt.Sprintf("invalid s4: %d", m.S4))
+	}
+
+	if m.ShufflePacket == "" || m.ShufflePacket == "false" {
+		m.shufflePacket = false
+	} else if m.ShufflePacket == "true" {
+		m.shufflePacket = true
+		m.shufflePacketN = 3
+		m.shufflePacketM = 4
+	} else {
+		parts := strings.Split(m.ShufflePacket, ":")
+		if len(parts) != 2 {
+			return errors.New(fmt.Sprintf("invalid shuffle-packet format: %s", m.ShufflePacket))
+		}
+		N, err := strconv.Atoi(parts[0])
+		if err != nil {
+			return errors.New(fmt.Sprintf("invalid n for shuffle-packet: %s", parts[0]))
+		}
+		if N < 0 {
+			return errors.New(fmt.Sprintf("invalid n for shuffle-packet: %d, must be larger than or equal to 0", N))
+		}
+		M, err := strconv.Atoi(parts[1])
+		if err != nil {
+			return errors.New(fmt.Sprintf("invalid m for shuffle-packet: %s", parts[1]))
+		}
+		if M < 0 {
+			return errors.New(fmt.Sprintf("invalid m for shuffle-packet: %d, must be larger than or equal to 0", N))
+		}
+		m.shufflePacket = true
+		m.shufflePacketN = N
+		m.shufflePacketM = M
 	}
 
 	return nil

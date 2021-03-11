@@ -24,6 +24,65 @@ var (
 
 	defaultConfigFile, _ = homedir.Expand("~/.prsdata.yml")
 
+	completionCmd = &cobra.Command{
+		Use:   "completion [bash|zsh|fish|powershell]",
+		Short: "Generate completion script",
+		Long: `To load completions:
+
+Bash:
+
+  $ source <(prsdata completion bash)
+
+  # To load completions for each session, execute once:
+  # Linux:
+  $ prsdata completion bash > /etc/bash_completion.d/prsdata
+  # macOS:
+  $ prsdata completion bash > /usr/local/etc/bash_completion.d/prsdata
+
+Zsh:
+
+  # If shell completion is not already enabled in your environment,
+  # you will need to enable it.  You can execute the following once:
+
+  $ echo "autoload -U compinit; compinit" >> ~/.zshrc
+
+  # To load completions for each session, execute once:
+  $ prsdata completion zsh > "${fpath[1]}/_prsdata"
+
+  # You will need to start a new shell for this setup to take effect.
+
+fish:
+
+  $ prsdata completion fish | source
+
+  # To load completions for each session, execute once:
+  $ prsdata completion fish > ~/.config/fish/completions/prsdata.fish
+
+PowerShell:
+
+  PS> prsdata completion powershell | Out-String | Invoke-Expression
+
+  # To load completions for every new session, run:
+  PS> prsdata completion powershell > prsdata.ps1
+  # and source this file from your PowerShell profile.
+`,
+		DisableFlagsInUseLine: true,
+		ValidArgs:             []string{"bash", "zsh", "fish", "powershell"},
+		Args:                  cobra.ExactValidArgs(1),
+		Run: func(cmd *cobra.Command, args []string) {
+			switch args[0] {
+			case "bash":
+				cmd.Root().GenBashCompletion(os.Stdout)
+			case "zsh":
+				cmd.Root().GenZshCompletion(os.Stdout)
+			case "fish":
+				cmd.Root().GenFishCompletion(os.Stdout, true)
+			case "powershell":
+				cmd.Root().GenPowerShellCompletionWithDesc(os.Stdout)
+			}
+		},
+	}
+
 	rootCmd = &cobra.Command{
 		Use:   fmt.Sprintf("prsdata (%s)", VERSION),
 		Short: "find, modify and replay with pcap",
@@ -40,6 +99,9 @@ var (
 )
 
 func init() {
+
+	rootCmd.AddCommand(completionCmd)
+
 	rootCmd.Flags().StringP("config-file", "f", defaultConfigFile, "配置文件路径")
 	// default control params
 	rootCmd.Flags().IntP("concurrency-jobs", "C", 6, "并发 job 数量")
@@ -64,7 +126,7 @@ func init() {
 	// default modifier params
 	rootCmd.Flags().BoolP("adjust-time", "a", true, "adjust time or not")
 	rootCmd.Flags().DurationP("time-offset", "t", 0, "time offset")
-	rootCmd.Flags().BoolP("keep-ip", "K",false, "keep ip or not")
+	rootCmd.Flags().BoolP("keep-ip", "K", false, "keep ip or not")
 	rootCmd.Flags().Int("c1", 192, "c1")
 	rootCmd.Flags().Int("c2", 168, "c2")
 	rootCmd.Flags().Int("c3", 186, "c3")
@@ -76,7 +138,8 @@ func init() {
 	rootCmd.Flags().BoolP("use-part-3", "3", false, "use part 3 or not")
 	rootCmd.Flags().BoolP("use-part-4", "4", false, "use part 4 or not")
 	rootCmd.Flags().BoolP("p426", "6", false, "将 IPv4 的 pcap 修改为 IPv6")
-	rootCmd.Flags().IntP("shuffle", "s", 0, "保留指定字节数后随机打乱剩余 payload")
+	rootCmd.Flags().IntP("shuffle-payload", "s", 0, "保留指定字节数后随机打乱剩余 payload")
+	rootCmd.Flags().StringP("shuffle-packet", "r", "false", "默认将除了前 3 个 和 后 4 个以外的 packet 全部打乱, 可以使用 n:m 进行覆盖")
 	rootCmd.Flags().StringP("tshark-filter", "R", "", "tshark 的 Read filter, modifier 会根据该 filter 生成一个新的 pcap 供后续处理")
 
 	// default finder params
@@ -88,8 +151,8 @@ func init() {
 	rootCmd.Flags().Int("packet-count-ge", 0, "packet count greater than or equal to given value")
 	rootCmd.Flags().Int("avg-packet-size-le", 0, "avg packet size less than or equal to given value")
 	rootCmd.Flags().Int("avg-packet-size-ge", 0, "avg packet size greater than or equal to given value")
-	rootCmd.Flags().Bool("only-ipv6",  false, "find only ipv6 pcap")
-	rootCmd.Flags().BoolP("only-ethernet",  "E",true, "find only ethernet pcap")
+	rootCmd.Flags().Bool("only-ipv6", false, "find only ipv6 pcap")
+	rootCmd.Flags().BoolP("only-ethernet", "E", true, "find only ethernet pcap")
 	rootCmd.Flags().StringP("tshark-read-filter", "F", "", "tshark 的 Read filter, finder 主要根据该 filter 后的 pcap 的 packet 数量决定是否进一步处理该 pcap")
 
 	// default tool path params
