@@ -71,8 +71,15 @@ func (p *PcapTool) modifyIp(src, dst, cache, endpoints string, timeout time.Dura
 		timeout = config.CommandTimeout
 	}
 
+	cacheFilePath := fmt.Sprintf("%s.cache", dst)
+	result := pcapTool.generateCache(src, cacheFilePath, 0)
+	if !result.succeed {
+		return result
+	}
+	defer deleteFile(cacheFilePath)
+
 	cmd := fmt.Sprintf("%s --fixcsum --infile=%s --outfile=%s --skipbroadcast --cachefile=%s --endpoints=%s",
-		p.Tcprewrite, src, dst, cache, endpoints)
+		p.Tcprewrite, src, dst, cacheFilePath, endpoints)
 	return execShellCommand(cmd, timeout)
 }
 
