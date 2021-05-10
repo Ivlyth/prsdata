@@ -122,6 +122,8 @@ func init() {
 	rootCmd.Flags().String("pingback", "", "daemon 模式自动指定, 请勿手动指定")
 	rootCmd.Flags().String("fast-copy", "", "快捷任务, 将查找到的 pcap 修改后拷贝到给定的目录下")
 	rootCmd.Flags().StringToString("vars", map[string]string{}, "设定自定义变量的值用于命令渲染, 比如 --vars a=b, 可多次使用")
+	rootCmd.Flags().Uint16("profile", 0, "pprof http server port, 0 means disable")
+	rootCmd.Flags().BoolP("quiet", "q", false, "keep quiet")
 
 	// default modifier params
 	rootCmd.Flags().BoolP("adjust-time", "a", true, "adjust time or not")
@@ -237,6 +239,12 @@ func parseArgs(cmd *cobra.Command) {
 	// update logger log level
 	if config.Debug {
 		logger.SetLevel(logger.DebugLevel)
+	} else if config.Quiet {
+		logger.SetLevel(logger.FatalLevel)
+	}
+
+	if config.ProfilePort > 0 {
+		startProfileServer(config.ProfilePort)
 	}
 
 	// fix default finder & modifier
