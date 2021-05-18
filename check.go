@@ -18,6 +18,7 @@ func check(checker Checker) {
 	err := checker.check()
 	if err != nil {
 		logger.Errorf("auto check failed: %s - %s\n", checker, err)
+		errorHappened = true
 		terminate()
 	}
 }

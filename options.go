@@ -191,23 +191,27 @@ func parseArgs(cmd *cobra.Command) {
 			// allow default config file not exists
 			if configFile != defaultConfigFile {
 				logger.Errorln("config file does not exits")
+				errorHappened = true
 				terminate()
 			}
 		} else {
 			if stat.IsDir() {
 				logger.Errorf("\"%s\" is not a regular file\n", configFile)
+				errorHappened = true
 				terminate()
 			}
 
 			buf, err1 := ioutil.ReadFile(configFile)
 			if err1 != nil {
 				logger.Errorf("error when read from config file %s, %s\n", configFile, err1)
+				errorHappened = true
 				terminate()
 			}
 
 			err = V.ReadConfig(bytes.NewBuffer(buf))
 			if err != nil {
 				logger.Errorf("error when parse config file: %s\n", err)
+				errorHappened = true
 				terminate()
 			}
 
@@ -274,6 +278,7 @@ func parseConfig() {
 	for i, m := range ms {
 		if m == nil {
 			logger.Errorf("auto check failed: modifier at index %d is null", i)
+			errorHappened = true
 			terminate()
 		}
 		check(m)
@@ -286,6 +291,7 @@ func parseConfig() {
 	for i, f := range fs {
 		if f == nil {
 			logger.Errorf("auto check failed: finder at index %d is null", i)
+			errorHappened = true
 			terminate()
 		}
 		check(f)
@@ -315,6 +321,7 @@ func parseConfig() {
 	for i, j := range js {
 		if j == nil {
 			logger.Errorln(fmt.Sprintf("auto check failed: job at index %d is null", i))
+			errorHappened = true
 			terminate()
 		}
 		check(j)

@@ -27,6 +27,7 @@ func loadPcaps() {
 		err := finder.init()
 		if err != nil {
 			logger.Errorln(fmt.Sprintf("%s init failed: %s", finder, err))
+			errorHappened = true
 			terminate()
 		}
 
@@ -46,6 +47,7 @@ func loadPcaps() {
 
 		if len(finder.pcaps) == 0 {
 			logger.Errorln(fmt.Sprintf("%s load 0 pcaps", finder))
+			errorHappened = true
 			terminate()
 		}
 

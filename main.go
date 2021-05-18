@@ -8,6 +8,8 @@ import (
 
 var (
 	startTime time.Time
+
+	errorHappened bool
 )
 
 func init() {

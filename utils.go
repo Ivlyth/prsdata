@@ -21,7 +21,7 @@ func exit(code int) {
 
 func terminate() {
 	waiting := 0
-	if RUNNING {
+	if RUNNING || errorHappened {
 		waiting = 1
 	}
 	RUNNING = false
