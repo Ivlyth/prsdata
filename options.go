@@ -121,6 +121,7 @@ func init() {
 	rootCmd.Flags().Bool("daemon", false, "作为 daemon 在后台运行")
 	rootCmd.Flags().String("pingback", "", "daemon 模式自动指定, 请勿手动指定")
 	rootCmd.Flags().String("fast-copy", "", "快捷任务, 将查找到的 pcap 修改后拷贝到给定的目录下")
+	rootCmd.Flags().String("fast-merge", "", "快捷任务, 将查找到的 pcap 修改后合并保存为指定路径的 pcap")
 	rootCmd.Flags().StringToString("vars", map[string]string{}, "设定自定义变量的值用于命令渲染, 比如 --vars a=b, 可多次使用")
 	rootCmd.Flags().Uint16("profile", 0, "pprof http server port, 0 means disable")
 	rootCmd.Flags().BoolP("quiet", "q", false, "keep quiet")
@@ -165,6 +166,7 @@ func init() {
 	rootCmd.Flags().String("tcprewrite", "tcprewrite", "tcprewrite binary path")
 	rootCmd.Flags().String("tcpprep", "tcpprep", "tcpprep binary path")
 	rootCmd.Flags().String("tshark", "tshark", "tshark binary path")
+	rootCmd.Flags().String("mergecap", "mergecap", "mergecap binary path")
 
 	rootCmd.Flags().BoolP("version", "V", false, "show version")
 
@@ -303,6 +305,9 @@ func parseConfig() {
 	if config.FastCopyDirectory != "" {
 		config.SelectedJobs = []string{"fast-copy"}
 		js = append(js, fastCopyJob(config.FastCopyDirectory))
+	} else if config.FastMergePcapPath != "" {
+		config.SelectedJobs = []string{"fast-merge"}
+		js = append(js, fastMergeJob(config.FastMergePcapPath))
 	} else {
 		_ = V.UnmarshalKey("jobs", &js)
 

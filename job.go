@@ -3,6 +3,8 @@ package main
 import (
 	"errors"
 	"fmt"
+	logger "github.com/sirupsen/logrus"
+	"io/ioutil"
 )
 
 var (
@@ -179,6 +181,43 @@ func fastCopyJob(directory string) *Job {
 			{
 				Name:      "copy modified pcap",
 				Command:   fmt.Sprintf("cd %s && mkdir -p {{.RelativeDirectory}} && cp -f {{.Path}} {{.RelativeDirectory}}", directory),
+			},
+		},
+		FinderId: defaultFinder.Id,
+	}
+}
+
+func fastMergeJob(pcapPath string) *Job {
+
+	directory, err := ioutil.TempDir("/data/", "prsdata-fast-merge-")
+	if err != nil {
+		logger.Errorln(fmt.Sprintf("error when create temporary directory for fast merge: %s", err))
+		terminate()
+	}
+
+	return &Job{
+		Id:     "fast-merge",
+		Name:   "fast-merge",
+		Enable: false,
+		Commands: []*Command{
+			{
+				Name:      "create temporary dir",
+				Type:      "shell",
+				Command:   fmt.Sprintf("mkdir -p %s", directory),
+			},
+			{
+				Name:      "copy modified pcap",
+				Command:   fmt.Sprintf("cd %s && mkdir -p {{.RelativeDirectory}} && cp -f {{.Path}} {{.RelativeDirectory}}", directory),
+			},
+			{
+				Name:      "merge pcap",
+				Type:      "shell",
+				Command:   fmt.Sprintf("find %s -type f | xargs %s -w %s", directory, pcapTool.MergeCap, pcapPath),
+			},
+			{
+				Name:      "delete temporary dir",
+				Type:      "shell",
+				Command:   fmt.Sprintf("rm -rf %s", directory),
 			},
 		},
 		FinderId: defaultFinder.Id,

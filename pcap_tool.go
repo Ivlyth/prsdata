@@ -19,6 +19,7 @@ type PcapTool struct {
 	Tcprewrite string `mapstructure:"tcprewrite"`
 	Tcpprep    string `mapstructure:"tcpprep"`
 	Tshark     string `mapstructure:"tshark"`
+	MergeCap   string `mapstructure:"mergecap"`
 }
 
 func (p *PcapTool) String() string {
@@ -34,6 +35,7 @@ func (p *PcapTool) check() error {
 		"tcprewrite": &p.Tcprewrite,
 		"tcpprep":    &p.Tcpprep,
 		"tshark":     &p.Tshark,
+		"mergecap":   &p.MergeCap,
 	} {
 		if !filepath.IsAbs(*path) {
 			// find in path

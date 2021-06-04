@@ -25,6 +25,7 @@ type Config struct {
 	Pingback string `mapstructure:"pingback"`
 
 	FastCopyDirectory string            `mapstructure:"fast_copy"`
+	FastMergePcapPath string            `mapstructure:"fast_merge"`
 	Vars              map[string]string `mapstructure:"vars"`
 
 	KeepData           bool `mapstructure:"keep_data"`
