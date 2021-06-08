@@ -36,8 +36,8 @@ type Config struct {
 	ShowCommandStdout  bool `mapstructure:"show_stdout"`
 	ShowWhyNotLoadPcap bool `mapstructure:"show_why"`
 
-	ProfilePort      uint16 `mapstructure:"profile"`
-	Quiet            bool   `mapstructure:"quiet"`
+	ProfilePort uint16 `mapstructure:"profile"`
+	Quiet       bool   `mapstructure:"quiet"`
 
 	workingDirectory string
 }

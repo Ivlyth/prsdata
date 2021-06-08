@@ -44,7 +44,7 @@ func execRealCommand(realCommand *RealCommand) *ExecResult {
 		f.parse()
 		defer f.delete()
 
-		pcapContext := &PcapContext {
+		pcapContext := &PcapContext{
 			WorkingDirectory:  config.workingDirectory,
 			FinderDirectory:   realCommand.pcap.file.finder.workingDirectory,
 			PcapDirectory:     realCommand.pcap.workingDirectory,
@@ -92,12 +92,12 @@ func execShellCommand(command string, timeout time.Duration) *ExecResult {
 
 	go func() {
 		select {
-		case <- reaper:
+		case <-reaper:
 			// timeout
 			isTimeout = true
 			// kill process use pkill
 			_ = syscall.Kill(-cmd.Process.Pid, 9)
-		case <- processFinished:
+		case <-processFinished:
 
 		}
 	}()

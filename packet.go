@@ -18,8 +18,8 @@ type pcapWriter interface {
 }
 
 type ShuffleOptions struct {
-	KeepN  		 int
-	RandomPacket bool
+	KeepN         int
+	RandomPacket  bool
 	RandomPacketN int
 	RandomPacketM int
 }
@@ -114,8 +114,8 @@ func shufflePacketAndWrite(oldPacketSource *gopacket.PacketSource, newFileWriter
 
 	// 保留 前n 后m 然后对中间部分进行打乱
 	// 如果 小于等于 n+m+1 个 packet, 不进行操作
-	if options.RandomPacket && len(packets) > (options.RandomPacketN + options.RandomPacketM + 1) {
-		tmpPackets := packets[options.RandomPacketN:len(packets) - options.RandomPacketM]
+	if options.RandomPacket && len(packets) > (options.RandomPacketN+options.RandomPacketM+1) {
+		tmpPackets := packets[options.RandomPacketN : len(packets)-options.RandomPacketM]
 
 		s1 := rand.NewSource(time.Now().UnixNano())
 		r1 := rand.New(s1)
@@ -145,7 +145,7 @@ func shufflePacketAndWrite(oldPacketSource *gopacket.PacketSource, newFileWriter
 					return fmt.Errorf("invalid packet [%d] (cannot serialize): %w", i, err)
 				}
 			} else {
-				shuffledCount ++
+				shuffledCount++
 			}
 		} else {
 			b, err = serializePacket(packet)

@@ -211,8 +211,8 @@ func (p *Pcap) new() (string, error) {
 
 	if p.file.finder.modifier.ShufflePayload > 0 || p.file.finder.modifier.shufflePacket {
 		err := shufflePCAP(src, nfp426, p.info.IsPcapNG(), ShuffleOptions{
-			KeepN: p.file.finder.modifier.ShufflePayload,
-			RandomPacket: p.file.finder.modifier.shufflePacket,
+			KeepN:         p.file.finder.modifier.ShufflePayload,
+			RandomPacket:  p.file.finder.modifier.shufflePacket,
 			RandomPacketN: p.file.finder.modifier.shufflePacketN,
 			RandomPacketM: p.file.finder.modifier.shufflePacketM,
 		})

@@ -39,9 +39,9 @@ type Modifier struct {
 	ShufflePayload int    `mapstructure:"shuffle_payload"`
 	ShufflePacket  string `mapstructure:"shuffle_packet"`
 
-	shufflePacket bool    // 是否开启 packet 顺序随机打乱功能
-	shufflePacketN  int   // 保留前 n 个
-	shufflePacketM  int   // 保留后 m 个
+	shufflePacket  bool // 是否开启 packet 顺序随机打乱功能
+	shufflePacketN int  // 保留前 n 个
+	shufflePacketM int  // 保留后 m 个
 
 	TsharkReadFilter string `mapstructure:"tshark_filter"`
 

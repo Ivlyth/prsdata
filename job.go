@@ -90,12 +90,12 @@ func defaultJobs() []*Job {
 			Enable: false,
 			Commands: []*Command{
 				{
-					Name:      "bro",
-					Vars:      map[string]interface{}{
-						"bro": "/usr/local/bro/bin/bro",
+					Name: "bro",
+					Vars: map[string]interface{}{
+						"bro":        "/usr/local/bro/bin/bro",
 						"bro_config": "/opt/bro-scripts/tophant.entrypoint.bro",
 					},
-					Command:   "cd {{.FinderDirectory}} && {{.bro}} -r {{.RelativePath}} -C {{.bro_config}}",
+					Command: "cd {{.FinderDirectory}} && {{.bro}} -r {{.RelativePath}} -C {{.bro_config}}",
 				},
 			},
 			FinderId: defaultFinder.Id,
@@ -106,12 +106,12 @@ func defaultJobs() []*Job {
 			Enable: false,
 			Commands: []*Command{
 				{
-					Name:      "zeek",
-					Vars:      map[string]interface{}{
-						"zeek": "/opt/zeek/bin/zeek",
+					Name: "zeek",
+					Vars: map[string]interface{}{
+						"zeek":        "/opt/zeek/bin/zeek",
 						"zeek_config": "/opt/zeek-scripts/tophant.entrypoint.zeek",
 					},
-					Command:   "cd {{.FinderDirectory}} && {{.zeek}} -r {{.RelativePath}} -C {{.zeek_config}}",
+					Command: "cd {{.FinderDirectory}} && {{.zeek}} -r {{.RelativePath}} -C {{.zeek_config}}",
 				},
 			},
 			FinderId: defaultFinder.Id,
@@ -122,12 +122,12 @@ func defaultJobs() []*Job {
 			Enable: false,
 			Commands: []*Command{
 				{
-					Name:      "suricata",
-					Vars:      map[string]interface{}{
-						"suricata": "/usr/local/suricata/bin/suricata",
+					Name: "suricata",
+					Vars: map[string]interface{}{
+						"suricata":        "/usr/local/suricata/bin/suricata",
 						"suricata_config": "/usr/local/suricata/etc/suricata/suricata.yaml",
 					},
-					Command:   "cd {{.FinderDirectory}} && {{.suricata}} -c {{.suricata_config}} -r {{.RelativePath}} -k none --runmode autofp",
+					Command: "cd {{.FinderDirectory}} && {{.suricata}} -c {{.suricata_config}} -r {{.RelativePath}} -k none --runmode autofp",
 				},
 			},
 			FinderId: defaultFinder.Id,
@@ -138,12 +138,12 @@ func defaultJobs() []*Job {
 			Enable: false,
 			Commands: []*Command{
 				{
-					Name:      "suricata",
-					Vars:      map[string]interface{}{
-						"suricata": "/opt/suricata/bin/suricata",
+					Name: "suricata",
+					Vars: map[string]interface{}{
+						"suricata":        "/opt/suricata/bin/suricata",
 						"suricata_config": "/opt/suricata/etc/suricata/suricata.yaml",
 					},
-					Command:   "cd {{.FinderDirectory}} && {{.suricata}} -c {{.suricata_config}} -r {{.RelativePath}} -k none --runmode autofp",
+					Command: "cd {{.FinderDirectory}} && {{.suricata}} -c {{.suricata_config}} -r {{.RelativePath}} -k none --runmode autofp",
 				},
 			},
 			FinderId: defaultFinder.Id,
@@ -154,12 +154,12 @@ func defaultJobs() []*Job {
 			Enable: false,
 			Commands: []*Command{
 				{
-					Name:      "moloch",
-					Vars:      map[string]interface{}{
-						"moloch": "/data/moloch/bin/moloch-capture",
+					Name: "moloch",
+					Vars: map[string]interface{}{
+						"moloch":        "/data/moloch/bin/moloch-capture",
 						"moloch_config": "/data/moloch/etc/config.ini",
 					},
-					Command:   "cd {{.FinderDirectory}} && {{.moloch}} --insecure -c {{.moloch_config}} -r {{.RelativePath}}",
+					Command: "cd {{.FinderDirectory}} && {{.moloch}} --insecure -c {{.moloch_config}} -r {{.RelativePath}}",
 				},
 			},
 			FinderId: defaultFinder.Id,
@@ -174,13 +174,13 @@ func fastCopyJob(directory string) *Job {
 		Enable: false,
 		Commands: []*Command{
 			{
-				Name:      "create dst dir",
-				Type:      "shell",
-				Command:   fmt.Sprintf("mkdir -p %s", directory),
+				Name:    "create dst dir",
+				Type:    "shell",
+				Command: fmt.Sprintf("mkdir -p %s", directory),
 			},
 			{
-				Name:      "copy modified pcap",
-				Command:   fmt.Sprintf("cd %s && mkdir -p {{.RelativeDirectory}} && cp -f {{.Path}} {{.RelativeDirectory}}", directory),
+				Name:    "copy modified pcap",
+				Command: fmt.Sprintf("cd %s && mkdir -p {{.RelativeDirectory}} && cp -f {{.Path}} {{.RelativeDirectory}}", directory),
 			},
 		},
 		FinderId: defaultFinder.Id,
@@ -201,23 +201,23 @@ func fastMergeJob(pcapPath string) *Job {
 		Enable: false,
 		Commands: []*Command{
 			{
-				Name:      "create temporary dir",
-				Type:      "shell",
-				Command:   fmt.Sprintf("mkdir -p %s", directory),
+				Name:    "create temporary dir",
+				Type:    "shell",
+				Command: fmt.Sprintf("mkdir -p %s", directory),
 			},
 			{
-				Name:      "copy modified pcap",
-				Command:   fmt.Sprintf("cd %s && mkdir -p {{.RelativeDirectory}} && cp -f {{.Path}} {{.RelativeDirectory}}", directory),
+				Name:    "copy modified pcap",
+				Command: fmt.Sprintf("cd %s && mkdir -p {{.RelativeDirectory}} && cp -f {{.Path}} {{.RelativeDirectory}}", directory),
 			},
 			{
-				Name:      "merge pcap",
-				Type:      "shell",
-				Command:   fmt.Sprintf("find %s -type f | xargs %s -w %s", directory, pcapTool.MergeCap, pcapPath),
+				Name:    "merge pcap",
+				Type:    "shell",
+				Command: fmt.Sprintf("find %s -type f | xargs %s -w %s", directory, pcapTool.MergeCap, pcapPath),
 			},
 			{
-				Name:      "delete temporary dir",
-				Type:      "shell",
-				Command:   fmt.Sprintf("rm -rf %s", directory),
+				Name:    "delete temporary dir",
+				Type:    "shell",
+				Command: fmt.Sprintf("rm -rf %s", directory),
 			},
 		},
 		FinderId: defaultFinder.Id,
