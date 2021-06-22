@@ -58,6 +58,7 @@ func startDaemon() error {
 	// the process will connect to our listener, or
 	// it will exit with an error
 	success, exit := make(chan struct{}), make(chan error)
+	logPath := ""
 
 	// in one goroutine, we await the success of the child process
 	go func() {
@@ -69,7 +70,7 @@ func startDaemon() error {
 				}
 				break
 			}
-			err = handlePingbackConn(conn, expect)
+			logPath, err = handlePingbackConn(conn, expect)
 			if err == nil {
 				close(success)
 				break
@@ -87,7 +88,8 @@ func startDaemon() error {
 	// when one of the goroutines unblocks, we're done and can exit
 	select {
 	case <-success:
-		fmt.Printf("Successfully started prsdata (pid=%d) - prsdata is running in the background\n", cmd.Process.Pid)
+		logger.Infoln(fmt.Sprintf("Successfully started prsdata (pid=%d) - prsdata is running in the background", cmd.Process.Pid))
+		logger.Infoln(fmt.Sprintf("logger will be redirected to %s", logPath))
 	case err := <-exit:
 		return fmt.Errorf("prsdata process exited with error: %v", err)
 	}
@@ -95,16 +97,16 @@ func startDaemon() error {
 	return nil
 }
 
-func handlePingbackConn(conn net.Conn, expect []byte) error {
+func handlePingbackConn(conn net.Conn, expect []byte) (string, error) {
 	defer conn.Close()
-	confirmationBytes, err := ioutil.ReadAll(io.LimitReader(conn, 32))
+	confirmationBytes, err := ioutil.ReadAll(io.LimitReader(conn, 200))
 	if err != nil {
-		return err
+		return "", err
 	}
-	if !bytes.Equal(confirmationBytes, expect) {
-		return fmt.Errorf("wrong confirmation: %x", confirmationBytes)
+	if !bytes.Equal(confirmationBytes[:32], expect) {
+		return "", fmt.Errorf("wrong confirmation: %x", confirmationBytes)
 	}
-	return nil
+	return string(confirmationBytes[32:]), nil
 }
 
 func startPingback(pingback string) error {
@@ -121,5 +123,6 @@ func startPingback(pingback string) error {
 	if err != nil {
 		return fmt.Errorf("writing confirmation bytes to %s: %v", pingback, err)
 	}
+	_, err = conn.Write([]byte(config.daemonLogPath))
 	return nil
 }

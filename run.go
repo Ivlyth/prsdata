@@ -19,6 +19,22 @@ var (
 
 func run() {
 	// just show pcaps 的前提是有被选中的 job, 基于 job 的 finder 来展示 pcap 列表
+	if config.Pingback != "" {
+		err := startPingback(config.Pingback)
+		if err != nil {
+			logger.Errorln(fmt.Sprintf("error when fork as daemon: %s", err))
+			terminate()
+		}
+		// change logger's output to the given file
+		logFile, err := os.OpenFile(config.daemonLogPath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, os.ModePerm)
+		if err != nil {
+			logger.Errorln(fmt.Sprintf("error when open daemon log file: %s", err))
+			terminate()
+		}
+		logger.SetOutput(logFile)
+		logger.Infoln(fmt.Sprintf("redirect output to %s", config.daemonLogPath))
+	}
+
 	if len(selectedJobs) == 0 {
 		logger.Errorln("no job selected !!!")
 		return
@@ -40,13 +56,7 @@ func run() {
 		exit(0)
 	}
 
-	if config.Pingback != "" {
-		err := startPingback(config.Pingback)
-		if err != nil {
-			logger.Errorln(fmt.Sprintf("error when fork as daemon: %s", err))
-			terminate()
-		}
-	} else if config.AsDaemon {
+	if config.AsDaemon && config.Pingback == "" { // parent
 		err := startDaemon()
 		if err != nil {
 			logger.Errorln(fmt.Sprintf("error when fork as daemon: %s", err))

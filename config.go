@@ -40,6 +40,7 @@ type Config struct {
 	Quiet       bool   `mapstructure:"quiet"`
 
 	workingDirectory string
+	daemonLogPath    string
 }
 
 func (c *Config) String() string {
@@ -61,19 +62,14 @@ func (c *Config) check() error {
 	}
 
 	absTemporaryDirectory, _ := filepath.Abs(c.TemporaryDirectory)
-	info, err := os.Stat(absTemporaryDirectory)
-	if err != nil {
-		if os.IsNotExist(err) {
-			if err := os.MkdirAll(absTemporaryDirectory, os.ModePerm); err != nil {
-				return errors.New(fmt.Sprintf("error when create temporary directory: %s", err))
-			}
-		} else {
-			return errors.New(fmt.Sprintf(fmt.Sprintf("unknown error of temporary directory: %s", err)))
-		}
-	} else if !info.IsDir() {
-		return errors.New("temporary directory is not a directory")
+	if err := os.MkdirAll(absTemporaryDirectory, os.ModePerm); err != nil {
+		return errors.New(fmt.Sprintf("error when create temporary directory: %s", err))
 	}
 
 	c.workingDirectory = filepath.Join(absTemporaryDirectory, fmt.Sprintf("prsdata-%s-%d", startTime.Format(DirTimeFormat), os.Getpid()))
+	if err := os.MkdirAll(c.workingDirectory, os.ModePerm); err != nil {
+		return errors.New(fmt.Sprintf("error when create working directory: %s", err))
+	}
+	c.daemonLogPath = filepath.Join(c.workingDirectory, "prsdata.log")
 	return nil
 }

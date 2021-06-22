@@ -104,7 +104,7 @@ func init() {
 
 	rootCmd.Flags().StringP("config-file", "f", defaultConfigFile, "配置文件路径")
 	// default control params
-	rootCmd.Flags().IntP("concurrency-jobs", "C", 6, "并发 job 数量")
+	rootCmd.Flags().IntP("concurrency-jobs", "C", 1, "并发 job 数量")
 	rootCmd.Flags().IntP("concurrency-commands", "c", 6, "并发 command 数量")
 	rootCmd.Flags().IntP("test-times", "T", 1, "测试轮数")
 	rootCmd.Flags().Bool("debug", false, "debug mode")
