@@ -148,6 +148,7 @@ func init() {
 	// default finder params
 	rootCmd.Flags().StringP("directory", "d", "/data/.prsdata/pcaps/", "pcap search directory")
 	rootCmd.Flags().StringSliceP("patterns", "p", nil, "patterns for filter pcap")
+	rootCmd.Flags().StringArrayP("tags", "G", nil, "使用 tags 来筛选 pcap")
 	rootCmd.Flags().Int("pps-le", 0, "pps less than or equal to given value")
 	rootCmd.Flags().Int("pps-ge", 0, "pps greater than or equal to given value")
 	rootCmd.Flags().Int("packet-count-le", 0, "packet count less than or equal to given value")

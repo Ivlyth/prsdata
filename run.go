@@ -124,6 +124,7 @@ func timeoutChecker() {
 
 func cleanup(waiting int) {
 	cleanOnce.Do(func() {
+		running := RUNNING
 		RUNNING = false
 
 		if config.workingDirectory != "" {
@@ -131,7 +132,7 @@ func cleanup(waiting int) {
 				logger.Warnln(fmt.Sprintf("as reminder, your data under %s, please remember to remove it after use", config.workingDirectory))
 				return
 			}
-			if waiting != 0 {
+			if running && waiting != 0 {
 				logger.Warnln("waiting 3secs to cleanup")
 				time.Sleep(3 * time.Second)
 			}
