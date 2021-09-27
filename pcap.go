@@ -38,13 +38,13 @@ func (p *Pcap) String() string {
 		relativePath = p.file.pti.Name
 	}
 	if p.info != nil && config.JustShowPcaps {
-		s := fmt.Sprintf("%s [Pcap-%s] %d packets, %.2f pps, %.2f avg packet size", p.file.finder, relativePath, p.info.packetCount, p.info.avgPacketRate, p.info.avgPacketSize)
+		s := fmt.Sprintf("%s [Pcap %s] %d packets, %.2f pps, %.2f avg packet size", p.file.finder, relativePath, p.info.packetCount, p.info.avgPacketRate, p.info.avgPacketSize)
 		if p.file.pti != nil {
 			s = fmt.Sprintf("%s, tags: %v", s, p.file.pti.Tags)
 		}
 		return s
 	} else {
-		return fmt.Sprintf("%s [Pcap-%s]", p.file.finder, relativePath)
+		return fmt.Sprintf("%s [Pcap %s]", p.file.finder, relativePath)
 	}
 }
 
