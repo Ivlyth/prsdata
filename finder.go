@@ -1,11 +1,14 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/mitchellh/go-homedir"
 	logger "github.com/sirupsen/logrus"
+	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -21,6 +24,7 @@ type Finder struct {
 	Id               string   `mapstructure:"id"`
 	Directory        string   `mapstructure:"directory"` // from user
 	Patterns         []string `mapstructure:"patterns"`
+	Tags             []string `mapstructure:"tags"`
 	ModifierId       string   `mapstructure:"modifier"`
 	PpsLE            float64  `mapstructure:"pps_le"`
 	PpsGE            float64  `mapstructure:"pps_ge"`
@@ -35,6 +39,10 @@ type Finder struct {
 
 	absDirectory string // auto
 	patterns     []*regexp.Regexp
+
+	tags         [][]string
+	pcapTagsInfos []PcapTagsInfo
+
 	modifier     *Modifier
 	pcaps        []*Pcap
 
@@ -45,6 +53,18 @@ type Finder struct {
 	workingDirectory string
 
 	lock sync.Mutex
+}
+
+type PcapTagsInfo struct {
+	Name string   `json:"name"`
+	Path string   `json:"path"`
+	Tags []string `json:"tags"`
+
+	absPath string
+}
+
+func (pti PcapTagsInfo) String() string {
+	return fmt.Sprintf("PcapTagsInfo - path:%s, tags: %v", pti.Path, pti.Tags)
 }
 
 func (f *Finder) String() string {
@@ -59,13 +79,66 @@ func (f *Finder) init() error {
 	var err error = nil
 	if !f.initialized {
 		f.createDirOnce.Do(func() {
+			defer func() {
+				if err != nil {
+					f.initFailReason = err.Error()
+				}
+				f.initSucceed = err == nil
+				f.initialized = true
+			} ()
+
 			f.workingDirectory = filepath.Join(config.workingDirectory, "finder-"+f.Id)
 			err = os.MkdirAll(f.workingDirectory, os.ModePerm)
+
 			if err != nil {
-				f.initFailReason = err.Error()
+				return
 			}
-			f.initialized = true
-			f.initSucceed = err == nil
+			// load tags info under pcap directory
+			if len(f.tags) > 0 {
+				if !exists(path.Join(f.absDirectory, "tags.json")) {
+					err = errors.New(fmt.Sprintf("can not find file `tags.json`"))
+					return
+				}
+
+				content, err1 := ioutil.ReadFile(path.Join(f.absDirectory, "tags.json"))
+				if err1 != nil {
+					err = errors.New(fmt.Sprintf("can not read file `tags.json`: %s", err1))
+					return
+				}
+
+				var datas []PcapTagsInfo
+				err = json.Unmarshal(content, &datas)
+				if err != nil {
+					err = errors.New(fmt.Sprintf("can not unmarshal content of `tags.json`: %s", err))
+					return
+				}
+
+				for i, _ := range datas {
+					pti := &datas[i]
+					if pti.Name == "" {
+						err = errors.New(fmt.Sprintf("pcap tags info at index %d invalid: empty name", i))
+						return
+					}
+					if pti.Path == "" {
+						err = errors.New(fmt.Sprintf("pcap tags info at index %d invalid: empty path", i))
+						return
+					}
+					if path.IsAbs(pti.Path) {
+						err = errors.New(fmt.Sprintf("pcap tags info at index %d invalid: absoulte path", i))
+						return
+					}
+					pti.absPath = path.Join(f.absDirectory, pti.Path)
+					if !exists(pti.absPath) {
+						err = errors.New(fmt.Sprintf("pcap tags info at index %d invalid: path `%s` not exists", i, path.Join(f.absDirectory, pti.Path)))
+						return
+					}
+					if len(pti.Tags) == 0 {
+						err = errors.New(fmt.Sprintf("pcap tags info at index %d invalid: empty tags", i))
+						return
+					}
+				}
+				f.pcapTagsInfos = datas
+			}
 		})
 	} else if !f.initSucceed {
 		err = errors.New(f.initFailReason)
@@ -152,6 +225,22 @@ func (f *Finder) check() error {
 		}
 	}
 
+	if f.Tags != nil {
+		f.tags = make([][]string, 0)
+
+		for _, tag := range f.Tags {
+			tags := make([][]string, 0)
+			for _, tag1 := range strings.Split(tag, " ") {
+				tags = append(tags, strings.Split(tag1, ","))
+			}
+			f.tags = append(f.tags, expandTags(tags...)...)
+		}
+	}
+
+	//if len(f.tags) > 0 && len(f.patterns) > 0 {
+	//	return errors.New("can not use --patterns and --tags together")
+	//}
+
 	if f.PpsLE < 0 {
 		return errors.New("pps_le can not < 0")
 	}
@@ -185,6 +274,31 @@ func (f *Finder) check() error {
 	return nil
 }
 
+func (f *Finder) loadFromPcapTagsInfo(pti *PcapTagsInfo) error {
+	info, err := os.Stat(pti.absPath)
+
+	if err != nil {
+		logger.Warnln(fmt.Sprintf("%s errer when access pti %s", f, pti.absPath))
+		return nil
+	}
+
+	if info.IsDir() {
+		return nil
+	}
+
+	file := &File{
+		path:   pti.absPath,
+		finder: f,
+		info:   info,
+		pti:    pti,
+	}
+	file.parse()
+	pcap := &Pcap{
+		file: file,
+	}
+	return f.checkAndLoadPcap(pcap)
+}
+
 // callback for os.Walk
 func (f *Finder) loadFromPath(path string, info os.FileInfo, err error) error {
 	if err != nil {
@@ -206,26 +320,50 @@ func (f *Finder) loadFromPath(path string, info os.FileInfo, err error) error {
 		file: file,
 	}
 
+	return f.checkAndLoadPcap(pcap)
+}
+
+
+func (f *Finder) checkAndLoadPcap(pcap *Pcap) error {
+	file := pcap.file
 	if err := file.isValidPcapSuffix(); err != nil {
 		pcap.showWhy("invalid suffix")
 		return nil
 	}
 
-	if f.patterns != nil && len(f.patterns) > 0 {
+	if len(f.patterns) > 0 {
 		match := false
+		name := file.relativePath
+		if file.pti != nil {
+			name = file.pti.Name
+		}
 		for _, p := range f.patterns {
-			match = p.MatchString(file.relativePath)
+			match = p.MatchString(name)
 			if match {
 				break
 			}
 		}
 		if !match {
-			pcap.showWhy("pattern not match")
+			pcap.showWhy(fmt.Sprintf("pattern not match: %s against %v", name, f.patterns))
 			return nil
 		}
 	}
 
-	err = pcap.init()
+	if len(f.tags) > 0 {
+		match := false
+		for _, tags := range f.tags {
+			match = allInOthers(tags, file.pti.Tags)
+			if match {
+				break
+			}
+		}
+		if !match {
+			pcap.showWhy(fmt.Sprintf("tags not match: %v against %v", file.pti.Tags, f.tags))
+			return nil
+		}
+	}
+
+	err := pcap.init()
 	if err != nil {
 		pcap.showWhy(fmt.Sprintf("init info failed: %s", err))
 		return nil

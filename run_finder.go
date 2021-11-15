@@ -34,14 +34,25 @@ func loadPcaps() {
 		logger.Infoln(fmt.Sprintf("%s loading pcaps", finder))
 
 		finder.pcaps = make([]*Pcap, 0)
-		_ = filepath.Walk(finder.absDirectory, func(path string, info os.FileInfo, err error) error {
-			wg.Add(1)
-			_ = pool.Submit(func() {
-				defer wg.Done()
-				_ = finder.loadFromPath(path, info, err)
+		if len(finder.tags) > 0 {
+			for i, _ := range finder.pcapTagsInfos {
+				wg.Add(1)
+				pti := &finder.pcapTagsInfos[i]
+				_ = pool.Submit(func() {
+					defer wg.Done()
+					_ = finder.loadFromPcapTagsInfo(pti)
+				})
+			}
+		} else {
+			_ = filepath.Walk(finder.absDirectory, func(path string, info os.FileInfo, err error) error {
+				wg.Add(1)
+				_ = pool.Submit(func() {
+					defer wg.Done()
+					_ = finder.loadFromPath(path, info, err)
+				})
+				return nil
 			})
-			return nil
-		})
+		}
 
 		wg.Wait()
 

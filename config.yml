@@ -1,4 +1,4 @@
-config:
+tconfig:
   concurrency_jobs: 2
   concurrency_commands: 6
   test_times: 1
@@ -31,24 +31,84 @@ config:
   finder:
     directory: /data/.prsdata/pcaps/
 
+modifiers:
+  - id: keep-ip
+    adjust_time: true
+    keep_ip: true
+
+finders:
+  - id: ftp-keep-ip
+    directory: /data/.prsdata/pcaps/
+    patterns:
+      - ftp
+      - fet/ftp
+    modifier: keep-ip
+
+  - id: auth
+    directory: /data/.prsdata/pcaps/
+    patterns:
+      - ftp
+      - http
+      - redis
+      - socks
+      - http
+      - smtp
+      - pop3
+      - imap
+      - mysql
+      - ntlm
+      - kerberos
+      - ssh
+      - radius
+      - fet/imap
+
+  - id: file
+    directory: /data/.prsdata/pcaps/fet/
+
 jobs:
-  - id: zeek
-    name: zeek
+
+  - id: matrix
+    name: matrix
     enable: true
     commands:
-      - name: zeek
-        command: cd {{.FinderDirectory}} && /opt/zeek/bin/zeek -r {{.RelativePath}} -C /opt/zeek-scripts/tophant.entrypoint.zeek
-
-  - id: suricata
-    name: suricata
-    enable: true
-    commands:
-      - name: suricata
-        command: cd {{.FinderDirectory}} && /opt/suricata/bin/suricata -c /opt/suricata/etc/suricata/suricata.yaml -r {{.RelativePath}} -k none --runmode autofp
-
-  - id: fpc
-    name: fpc
+      - name: matrix
+        vars:
+          prefix: abcd
+        command: cd {{.FinderDirectory}} && /usr/bin/python2 /root/git/matrix/py/matrix-pcap.py --prefix {{.prefix}} -f {{.RelativePath}} -d 0.5
+        
+  - id: pcap-replay
+    name: pcap-replay
     enable: false
     commands:
-      - name: moloch
-        command: cd {{.FinderDirectory}} && /data/moloch/bin/moloch-capture --insecure -c /data/moloch/etc/config.ini -r {{.RelativePath}}
+      - name: pcap-replay
+        command: cd {{.FinderDirectory}} && /usr/bin/python2 /root/git/matrix/py/matrix-pcap.py --pcap-id {{.pcap_id}} -f {{.RelativePath}} -d 0.5
+        
+  - id: matrix-ftp
+    name: matrix-ftp
+    enable: false
+    finder: ftp-keep-ip
+    commands:
+      - name: matrix-ftp
+        vars:
+          prefix: abcd
+        command: cd {{.FinderDirectory}} && /usr/bin/python2 /root/git/matrix/py/matrix-pcap.py  --prefix {{.prefix}} -f {{.RelativePath}} -d 0.5
+
+  - id: auth
+    name: auth
+    enable: false
+    finder: auth
+    commands:
+      - name: auth
+        vars:
+          prefix: abcd
+        command: cd {{.FinderDirectory}} && /usr/bin/python2 /root/git/matrix/py/matrix-pcap.py  --prefix {{.prefix}} -f {{.RelativePath}} -d 0.5
+
+  - id: file
+    name: file
+    enable: false
+    finder: file
+    commands:
+      - name: file
+        vars:
+          prefix: abcd
+        command: cd {{.FinderDirectory}} && /usr/bin/python2 /root/git/matrix/py/matrix-pcap.py  --prefix {{.prefix}} -f {{.RelativePath}} -d 0.5

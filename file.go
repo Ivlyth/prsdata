@@ -11,6 +11,8 @@ type File struct {
 	path   string
 	finder *Finder
 
+	pti *PcapTagsInfo
+
 	baseName          string // 文件名, 包含后缀
 	name              string // 文件名, 不包含后缀
 	ext               string // 后缀
