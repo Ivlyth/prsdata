@@ -57,8 +57,12 @@ func (p *PcapTool) check() error {
 	return nil
 }
 
+func (p *PcapTool) pcapng2pcap(src, dst string) *ExecResult {
+	return execShellCommand(fmt.Sprintf("%s -F pcap %s %s", p.Editcap, src, dst), config.CommandTimeout)
+}
+
 func (p *PcapTool) adjustTime(src, dst string, timeOffset int64) *ExecResult {
-	return execShellCommand(fmt.Sprintf("%s -t %d %s %s", p.Editcap, timeOffset, src, dst), config.CommandTimeout)
+	return execShellCommand(fmt.Sprintf("%s -t %d -F pcap %s %s", p.Editcap, timeOffset, src, dst), config.CommandTimeout)
 }
 
 func (p *PcapTool) generateCache(src, dst string, timeout time.Duration) *ExecResult {
@@ -82,6 +86,23 @@ func (p *PcapTool) modifyIp(src, dst, cache, endpoints string, timeout time.Dura
 
 	cmd := fmt.Sprintf("%s --fixcsum --infile=%s --outfile=%s --skipbroadcast --cachefile=%s --endpoints=%s",
 		p.Tcprewrite, src, dst, cacheFilePath, endpoints)
+	return execShellCommand(cmd, timeout)
+}
+
+func (p *PcapTool) convertDLT2Ethernet(src, dst string, timeout time.Duration) *ExecResult {
+	if timeout == 0 {
+		timeout = config.CommandTimeout
+	}
+
+	cacheFilePath := fmt.Sprintf("%s.cache", dst)
+	result := pcapTool.generateCache(src, cacheFilePath, 0)
+	if !result.succeed {
+		return result
+	}
+	defer deleteFile(cacheFilePath)
+
+	cmd := fmt.Sprintf("%s --fixcsum --infile=%s --outfile=%s --skipbroadcast --cachefile=%s --dlt=enet --enet-mac-seed=5",
+		p.Tcprewrite, src, dst, cacheFilePath)
 	return execShellCommand(cmd, timeout)
 }
 

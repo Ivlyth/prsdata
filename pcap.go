@@ -77,6 +77,11 @@ func (p *Pcap) init() error {
 			}
 			p.info = info
 
+			if p.file.finder.OnlyEthernet && !p.info.IsEthernet() {
+				err = errors.New(fmt.Sprintf("pcap not ethernet encapsulation (%s), by %s", p.info.Encapsulation, p.file.finder))
+				return
+			}
+
 			p.workingDirectory = filepath.Join(p.file.finder.workingDirectory, p.file.relativeDirectory)
 			err = os.MkdirAll(p.workingDirectory, os.ModePerm)
 			if err != nil {
@@ -84,7 +89,14 @@ func (p *Pcap) init() error {
 			}
 			// copy to working directory
 			p.copyFilePath = filepath.Join(p.workingDirectory, p.file.baseName)
-			err = p.file.copyTo(p.copyFilePath)
+			if p.info.IsEthernet() {
+				err = p.file.copyTo(p.copyFilePath)
+			} else {
+				fmt.Printf("not a ethernet pcap\n")
+				ret := pcapTool.convertDLT2Ethernet(p.file.path, p.copyFilePath, 0)
+				err = ret.err
+			}
+
 			if err != nil {
 				return
 			}
@@ -95,7 +107,7 @@ func (p *Pcap) init() error {
 					return
 				}
 				dst := filepath.Join(p.workingDirectory, fmt.Sprintf("%s.adjust-time", p.file.name))
-				result := pcapTool.adjustTime(p.file.path, dst, p.timeOffset())
+				result := pcapTool.adjustTime(p.copyFilePath, dst, p.timeOffset())
 				adjf := File{path: dst}
 				defer adjf.delete()
 				if !result.succeed {
@@ -110,7 +122,7 @@ func (p *Pcap) init() error {
 					pcapType = "pcapng"
 				}
 				rfFile := filepath.Join(p.workingDirectory, fmt.Sprintf("%s.tshark_rf", p.file.name))
-				result := pcapTool.tsharkReadFilter(p.file.path, rfFile, p.file.finder.TsharkReadFilter, pcapType, 0)
+				result := pcapTool.tsharkReadFilter(p.copyFilePath, rfFile, p.file.finder.TsharkReadFilter, pcapType, 0)
 				if !result.succeed {
 					err = result.err
 					return
@@ -131,14 +143,14 @@ func (p *Pcap) init() error {
 			if !p.file.finder.modifier.KeepIp {
 				// first, generate cache file
 				p.cacheFilePath = filepath.Join(p.workingDirectory, fmt.Sprintf("%s.cache", p.file.name))
-				result := pcapTool.generateCache(p.file.path, p.cacheFilePath, 0)
+				result := pcapTool.generateCache(p.copyFilePath, p.cacheFilePath, 0)
 				if !result.succeed {
 					err = result.err
 					return
 				}
 
 				ipv6File := filepath.Join(p.workingDirectory, fmt.Sprintf("%s.ipv6", p.file.name))
-				result = pcapTool.filterIPv6(p.file.path, ipv6File, 0)
+				result = pcapTool.filterIPv6(p.copyFilePath, ipv6File, 0)
 				if !result.succeed {
 					err = result.err
 					return
@@ -154,7 +166,7 @@ func (p *Pcap) init() error {
 
 				endpoints := p.file.finder.modifier.randomEndPoints(p.hasIPv6)
 				modifyIPFile := filepath.Join(p.workingDirectory, fmt.Sprintf("%s.modify-ip", p.file.name))
-				result = pcapTool.modifyIp(p.file.path, modifyIPFile, p.cacheFilePath, endpoints, 0)
+				result = pcapTool.modifyIp(p.copyFilePath, modifyIPFile, p.cacheFilePath, endpoints, 0)
 				modifyf := File{path: modifyIPFile}
 				defer modifyf.delete()
 				if !result.succeed {
@@ -179,23 +191,31 @@ func (p *Pcap) new() (string, error) {
 	nid := p.counter.Inc()
 
 	srcBase := filepath.Join(p.workingDirectory, fmt.Sprintf("%s_%06d", p.file.name, nid))
+	var ext = ".pcap"
+	src := fmt.Sprintf("%s%s", srcBase, ext)
 
-	src := fmt.Sprintf("%s%s", srcBase, p.file.ext)
-	err := copyTo(p.copyFilePath, src)
-	if err != nil {
-		return "", err
+	if p.info.IsPcapNG() {
+		result := pcapTool.pcapng2pcap(p.copyFilePath, src)
+		if !result.succeed {
+			return "", result.err
+		}
+	} else {
+		err := copyTo(p.copyFilePath, src)
+		if err != nil {
+			return "", err
+		}
 	}
 
-	nfrf := fmt.Sprintf("%s.rf%s", srcBase, p.file.ext)
-	nfp426 := fmt.Sprintf("%s.p426%s", srcBase, p.file.ext)
-	nft := fmt.Sprintf("%s.adjust-time%s", srcBase, p.file.ext)
-	nfm := fmt.Sprintf("%s.modify-ip%s", srcBase, p.file.ext)
+	nfrf := fmt.Sprintf("%s.rf%s", srcBase, ext)
+	nfp426 := fmt.Sprintf("%s.p426%s", srcBase, ext)
+	nft := fmt.Sprintf("%s.adjust-time%s", srcBase, ext)
+	nfm := fmt.Sprintf("%s.modify-ip%s", srcBase, ext)
 
 	if p.file.finder.modifier.TsharkReadFilter != "" {
 		pcapType := "pcap"
-		if p.info.IsPcapNG() {
-			pcapType = "pcapng"
-		}
+		//if p.info.IsPcapNG() {
+		//	pcapType = "pcapng"
+		//}
 		result := pcapTool.tsharkReadFilter(src, nfrf, p.file.finder.modifier.TsharkReadFilter, pcapType, 0)
 		if !result.succeed {
 			return "", result.err
@@ -207,7 +227,7 @@ func (p *Pcap) new() (string, error) {
 	}
 
 	if p.file.finder.modifier.P426 {
-		err := ConvertPCAP(src, nfp426, p.info.IsPcapNG())
+		err := ConvertPCAP(src, nfp426, false)
 		if err != nil {
 			return "", err
 		}
@@ -218,7 +238,7 @@ func (p *Pcap) new() (string, error) {
 	}
 
 	if p.file.finder.modifier.ShufflePayload > 0 || p.file.finder.modifier.shufflePacket {
-		err := shufflePCAP(src, nfp426, p.info.IsPcapNG(), ShuffleOptions{
+		err := shufflePCAP(src, nfp426, false, ShuffleOptions{
 			KeepN:         p.file.finder.modifier.ShufflePayload,
 			RandomPacket:  p.file.finder.modifier.shufflePacket,
 			RandomPacketN: p.file.finder.modifier.shufflePacketN,
