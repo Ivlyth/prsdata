@@ -78,7 +78,7 @@ func (p *Pcap) init() error {
 			p.info = info
 
 			if p.file.finder.OnlyEthernet && !p.info.IsEthernet() {
-				err = errors.New(fmt.Sprintf("pcap not ethernet encapsulation (%s), by %s", p.info.Encapsulation, p.file.finder))
+				err = errors.New(fmt.Sprintf("not ethernet encapsulation (%s)", p.info.Encapsulation))
 				return
 			}
 
@@ -92,7 +92,6 @@ func (p *Pcap) init() error {
 			if p.info.IsEthernet() {
 				err = p.file.copyTo(p.copyFilePath)
 			} else {
-				fmt.Printf("not a ethernet pcap\n")
 				ret := pcapTool.convertDLT2Ethernet(p.file.path, p.copyFilePath, 0)
 				err = ret.err
 			}
